@@ -53,5 +53,31 @@ public class MongoConfig {
                 Indexes.ascending("userId"),
                 new IndexOptions().unique(true).name("userId_unique")
         );
+
+
+        // ── bookings collection ───────────────────────────────────────────────
+        MongoCollection<Document> bookings = db.getCollection("bookings");
+
+        // Index for customer's booking history
+        bookings.createIndex(
+                Indexes.ascending("customerId"),
+                new IndexOptions().name("booking_customerId")
+        );
+
+        // Index for provider's booking history
+        bookings.createIndex(
+                Indexes.ascending("providerId"),
+                new IndexOptions().name("booking_providerId")
+        );
+
+        // Compound index to prevent double booking
+        bookings.createIndex(
+                Indexes.compoundIndex(
+                        Indexes.ascending("providerId"),
+                        Indexes.ascending("scheduledDate"),
+                        Indexes.ascending("scheduledTime")
+                ),
+                new IndexOptions().name("booking_slot_index")
+        );
     }
 }

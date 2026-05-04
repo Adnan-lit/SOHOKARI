@@ -23,6 +23,8 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
     Page<Booking> findByProviderIdOrderByCreatedAtDesc(String providerId, Pageable pageable);
     Page<Booking> findByProviderIdAndStatusOrderByCreatedAtDesc(
             String providerId, BookingStatus status, Pageable pageable);
+    Page<Booking> findByProviderUserIdOrderByCreatedAtDesc(
+            String providerUserId, Pageable pageable);
 
     // Double booking check — same provider, same date+time, not cancelled/rejected
     @Query("{ 'providerId': ?0, 'scheduledDate': ?1, 'scheduledTime': ?2, " +

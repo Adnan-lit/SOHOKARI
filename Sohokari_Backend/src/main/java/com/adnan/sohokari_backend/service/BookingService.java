@@ -20,6 +20,7 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final ProviderRepository providerRepository;
     private final UserRepository userRepository;
+    private final FcmService fcmService;
 
     // ── Create booking ────────────────────────────────────────────────────
 
@@ -70,7 +71,13 @@ public class BookingService {
 
         bookingRepository.save(booking);
 
-        // TODO Phase 4: send FCM push to provider here
+        fcmService.sendNotification(
+                provider.getUserId(),
+                "New booking request",
+                customer.getName() + " requested " + req.getServiceCategory().name(),
+                Notification.NotificationType.BOOKING_REQUESTED,
+                booking.getId()
+        );
 
         return mapToResponse(booking, customer, provider);
     }
@@ -89,7 +96,18 @@ public class BookingService {
         booking.setUpdatedAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
-        // TODO Phase 4: notify customer
+        Provider provider = providerRepository.findById(booking.getProviderId()).orElse(null);
+        User providerUser = provider != null
+                ? userRepository.findById(provider.getUserId()).orElse(null)
+                : null;
+        fcmService.sendNotification(
+                booking.getCustomerId(),
+                "Booking accepted! 🎉",
+                (providerUser != null ? providerUser.getName() : "Provider")
+                        + " accepted your booking",
+                Notification.NotificationType.BOOKING_ACCEPTED,
+                booking.getId()
+        );
 
         return buildResponse(booking);
     }
@@ -108,7 +126,13 @@ public class BookingService {
         booking.setUpdatedAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
-        // TODO Phase 4: notify customer
+        fcmService.sendNotification(
+                booking.getCustomerId(),
+                "Booking rejected",
+                "Your booking was rejected" + (reason != null ? ": " + reason : ""),
+                Notification.NotificationType.BOOKING_REJECTED,
+                booking.getId()
+        );
 
         return buildResponse(booking);
     }
@@ -147,8 +171,13 @@ public class BookingService {
                 provider.getTotalCompletedBookings() + 1);
         providerRepository.save(provider);
 
-        // TODO Phase 4: notify customer
-        // TODO Phase 5: trigger reputation recalculation
+        fcmService.sendNotification(
+                booking.getCustomerId(),
+                "Service completed ✅",
+                "Please rate your experience",
+                Notification.NotificationType.BOOKING_COMPLETED,
+                booking.getId()
+        );
 
         return buildResponse(booking);
     }

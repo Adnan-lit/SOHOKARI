@@ -1,0 +1,57 @@
+package com.adnan.sohokari_backend.config;
+
+
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.Indexes;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import org.bson.Document;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.config.EnableMongoAuditing;
+
+@Configuration
+@EnableMongoAuditing
+@RequiredArgsConstructor
+public class MongoConfig {
+
+    private final MongoClient mongoClient;
+
+    @Value("${spring.mongodb.database:${spring.data.mongodb.database}}")
+    private String dbName;
+
+    @PostConstruct
+    public void createIndexes() {
+        MongoDatabase db = mongoClient.getDatabase(dbName);
+
+        // ── providers collection ──────────────────────────────────────────
+        MongoCollection<Document> providers = db.getCollection("providers");
+
+        // 2dsphere index for location queries (nearby search)
+        providers.createIndex(
+                Indexes.geo2dsphere("location"),
+                new IndexOptions().name("location_2dsphere")
+        );
+
+        // Text index for smart search (search by name, skills, bio, category)
+        providers.createIndex(
+                Indexes.compoundIndex(
+                        new Document("serviceCategory", "text"),
+                        new Document("skills",          "text"),
+                        new Document("bio",             "text"),
+                        new Document("serviceArea",     "text")
+                ),
+                new IndexOptions().name("provider_text_search")
+        );
+
+        // ── users collection ──────────────────────────────────────────────
+        MongoCollection<Document> users = db.getCollection("users");
+        providers.createIndex(
+                Indexes.ascending("userId"),
+                new IndexOptions().unique(true).name("userId_unique")
+        );
+    }
+}

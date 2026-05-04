@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
 import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
+import org.springframework.data.mongodb.core.index.TextIndexed;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,12 +25,15 @@ public class Provider {
 
     private ServiceCategory serviceCategory;
 
+    @TextIndexed
     private List<String> skills;  // e.g. ["AC repair", "wiring", "fan installation"]
 
+    @TextIndexed
     private String bio;
 
     private Double hourlyRate;
 
+    @TextIndexed
     private String serviceArea;  // Area description e.g. "Dhanmondi, Mohammadpur"
 
     @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)

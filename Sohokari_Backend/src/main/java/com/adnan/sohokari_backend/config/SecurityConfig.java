@@ -4,6 +4,7 @@ import com.adnan.sohokari_backend.security.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -31,8 +32,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/services/search").permitAll()
                         .requestMatchers("/api/v1/providers/nearby").permitAll()
-                        .requestMatchers("/api/v1/providers/{id}").permitAll()
-                        .requestMatchers("/api/v1/reviews/provider/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/providers/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/reviews/provider/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/reviews/booking/**").permitAll()
+
+                        // Authenticated endpoints — explicitly allow all review methods
+                        .requestMatchers("/api/v1/reviews/**").authenticated()
+
                         // Everything else needs auth
                         .anyRequest().authenticated()
                 )

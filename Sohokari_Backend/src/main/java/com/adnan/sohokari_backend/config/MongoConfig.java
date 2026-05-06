@@ -79,5 +79,21 @@ public class MongoConfig {
                 ),
                 new IndexOptions().name("booking_slot_index")
         );
+
+
+        // ── reviews collection ────────────────────────────────────────────────
+        MongoCollection<Document> reviews = db.getCollection("reviews");
+
+        // Unique index: one review per booking
+        reviews.createIndex(
+                Indexes.ascending("bookingId"),
+                new IndexOptions().unique(true).name("review_bookingId_unique")
+        );
+
+        // Index for fetching provider's reviews
+        reviews.createIndex(
+                Indexes.ascending("providerId"),
+                new IndexOptions().name("review_providerId")
+        );
     }
 }

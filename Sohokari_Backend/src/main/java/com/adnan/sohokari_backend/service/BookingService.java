@@ -21,6 +21,7 @@ public class BookingService {
     private final ProviderRepository providerRepository;
     private final UserRepository userRepository;
     private final FcmService fcmService;
+    private final RecommendationService recommendationService;
 
     // ── Create booking ────────────────────────────────────────────────────
 
@@ -70,6 +71,12 @@ public class BookingService {
         booking.setStatus(BookingStatus.REQUESTED);
 
         bookingRepository.save(booking);
+
+        recommendationService.recordBooking(
+                customer.getId(),
+                provider.getId(),
+                req.getServiceCategory()
+        );
 
         fcmService.sendNotification(
                 provider.getUserId(),

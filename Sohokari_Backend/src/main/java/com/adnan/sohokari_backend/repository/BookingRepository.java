@@ -42,4 +42,15 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
 
     // Check if booking is already reviewed
     Optional<Booking> findByIdAndStatus(String id, BookingStatus status);
+
+    // For FAST_RESPONDER badge calculation
+    @Query("{ 'providerId': ?0, 'status': { $in: ['ACCEPTED', 'REJECTED', 'COMPLETED'] }, " +
+            "'respondedAt': { $exists: true } }")
+    List<Booking> findRespondedBookings(String providerId);
+
+    // Count by providerId (all statuses)
+    long countByProviderId(String providerId);
+
+    long countByCustomerId(String customerId);
+    long countByCustomerIdAndStatus(String customerId, BookingStatus status);
 }

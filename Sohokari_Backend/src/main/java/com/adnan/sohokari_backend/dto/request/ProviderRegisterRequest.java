@@ -4,6 +4,7 @@ import com.adnan.sohokari_backend.model.ServiceCategory;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+
 @Data
 public class ProviderRegisterRequest {
 

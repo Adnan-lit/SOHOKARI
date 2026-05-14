@@ -20,7 +20,7 @@ public class MongoConfig {
 
     private final MongoClient mongoClient;
 
-    @Value("${spring.mongodb.database:${spring.data.mongodb.database}}")
+    @Value("${spring.data.mongodb.database:sohokari}")
     private String dbName;
 
     @PostConstruct

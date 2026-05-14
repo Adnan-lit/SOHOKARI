@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    container_name: sohokari-app
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      APP_FIREBASE_ENABLED: "true"
+      JAVA_TOOL_OPTIONS: "-Dspring.data.mongodb.uri=${MONGODB_URI} -Dspring.data.mongodb.connection-string=${MONGODB_URI} -Dspring.data.mongodb.database=${MONGODB_DATABASE:-sohokari}"
+      SPRING_APPLICATION_JSON: "{\"spring\":{\"data\":{\"mongodb\":{\"uri\":\"${MONGODB_URI}\",\"connection-string\":\"${MONGODB_URI}\",\"database\":\"${MONGODB_DATABASE:-sohokari}\"}}}}"
+      SPRING_DATA_MONGODB_URI: ${MONGODB_URI}
+      SPRING_DATA_MONGODB_CONNECTION_STRING: ${MONGODB_URI}
+      SPRING_DATA_MONGODB_DATABASE: ${MONGODB_DATABASE:-sohokari}
+    restart: unless-stopped

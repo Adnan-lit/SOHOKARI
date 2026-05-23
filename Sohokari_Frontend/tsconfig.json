@@ -4,16 +4,36 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@api/*":        ["src/api/*"],
-      "@components/*": ["src/components/*"],
-      "@screens/*":    ["src/screens/*"],
-      "@hooks/*":      ["src/hooks/*"],
-      "@store/*":      ["src/store/*"],
-      "@services/*":   ["src/services/*"],
-      "@utils/*":      ["src/utils/*"],
-      "@types/*":      ["src/types/*"],
-      "@theme/*":      ["src/theme/*"],
-      "@constants/*":  ["src/constants/*"]
+      "@api/*": [
+        "src/api/*"
+      ],
+      "@components/*": [
+        "src/components/*"
+      ],
+      "@screens/*": [
+        "src/screens/*"
+      ],
+      "@hooks/*": [
+        "src/hooks/*"
+      ],
+      "@store/*": [
+        "src/store/*"
+      ],
+      "@services/*": [
+        "src/services/*"
+      ],
+      "@utils/*": [
+        "src/utils/*"
+      ],
+      "@app-types/*": [
+        "src/types/*"
+      ],
+      "@theme/*": [
+        "src/theme/*"
+      ],
+      "@constants/*": [
+        "src/constants/*"
+      ]
     }
   }
 }

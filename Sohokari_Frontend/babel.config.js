@@ -15,6 +15,7 @@ module.exports = function (api) {
           '@utils':      './src/utils',
           '@theme':      './src/theme',
           '@constants':  './src/constants',
+          '@app-types':  './src/types',
         },
       }],
       // 'react-native-reanimated/plugin' ← add this back later when needed

@@ -35,6 +35,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/providers/{id}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/reviews/provider/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/reviews/booking/**").permitAll()
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // Authenticated endpoints — explicitly allow all review methods
                         .requestMatchers("/api/v1/reviews/**").authenticated()
                         .requestMatchers("/api/v1/recommendations/**").authenticated()

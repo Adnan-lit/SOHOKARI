@@ -11,7 +11,7 @@ import { reviewsApi } from '@api/reviews';
 import { Colors }     from '@theme/colors';
 import Button         from '@components/common/Button';
 import FormInput      from '@components/forms/FormInput';
-import type { RootNavProp, RootStackParamList } from '@types/navigation.types';
+import type { RootNavProp, RootStackParamList } from '@app-types/navigation.types';
 
 type RoutePropType = RouteProp<RootStackParamList, 'ReviewForm'>;
 

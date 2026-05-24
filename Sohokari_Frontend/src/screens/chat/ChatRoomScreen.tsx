@@ -101,17 +101,18 @@ export default function ChatRoomScreen() {
             bookingId: params.bookingId,
             content: text,
             messageType: "TEXT",
+            receiverId: params.receiverId ?? "",
           }),
         });
         // Optimistic update
         const optimistic: ChatMessage = {
-          _id: `tmp-${Date.now()}`,
+          messageId: `tmp-${Date.now()}`,
           bookingId: params.bookingId,
           senderId: userId ?? "",
           receiverId: params.receiverId ?? "",
           content: text,
           messageType: "TEXT",
-          createdAt: new Date().toISOString(),
+          sentAt: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, optimistic]);
       } else {
@@ -151,7 +152,7 @@ export default function ChatRoomScreen() {
             {item.content}
           </Text>
           <Text style={[styles.bubbleTime, isMe && styles.bubbleTimeMe]}>
-            {dayjs(item.createdAt).format("HH:mm")}
+            {dayjs(item.sentAt).format("HH:mm")}
           </Text>
         </View>
       </View>
@@ -180,7 +181,7 @@ export default function ChatRoomScreen() {
         <FlatList
           ref={listRef}
           data={messages}
-          keyExtractor={(m) => m._id}
+          keyExtractor={(m) => m.messageId}
           renderItem={renderMessage}
           contentContainerStyle={styles.list}
           onContentSizeChange={() => listRef.current?.scrollToEnd()}

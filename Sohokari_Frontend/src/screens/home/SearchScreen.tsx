@@ -247,12 +247,12 @@ export default function SearchScreen() {
       ) : (
         <FlatList
           data={data ?? []}
-          keyExtractor={(item) => item._id}
+          keyExtractor={(item) => item.providerId}
           renderItem={({ item }) => (
             <ProviderCard
               provider={item}
               onPress={() =>
-                navigation.navigate("ProviderProfile", { providerId: item._id })
+                navigation.navigate("ProviderProfile", { providerId: item.providerId })
               }
             />
           )}

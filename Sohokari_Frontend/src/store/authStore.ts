@@ -1,21 +1,11 @@
 import { create } from 'zustand';
 import { jwtDecode } from 'jwt-decode';
 import { authApi } from '@api/auth';
-import { getToken, clearToken } from '@api/client';
-import {
-  LoginRequest,
-  RegisterCustomerRequest,
-  RegisterProviderRequest,
-  UserRole,
-} from '@app-types/models';
+import { getToken, clearToken, clearRefresh } from '@api/client';
+import { notificationsApi } from '@api/chat';
+import type { LoginRequest, RegisterCustomerRequest, RegisterProviderRequest, UserRole } from '@app-types/models';
 
-interface JwtPayload {
-  sub:   string;   // user id
-  name:  string;
-  email: string;
-  role:  UserRole;
-  exp:   number;
-}
+interface JwtPayload { sub: string; exp: number; }
 
 interface AuthState {
   token:      string | null;
@@ -25,8 +15,6 @@ interface AuthState {
   role:       UserRole | null;
   isLoggedIn: boolean;
   loading:    boolean;
-
-  // actions
   loginCustomer:      (data: LoginRequest) => Promise<void>;
   registerCustomer:   (data: RegisterCustomerRequest) => Promise<void>;
   registerProvider:   (data: RegisterProviderRequest) => Promise<void>;
@@ -34,113 +22,74 @@ interface AuthState {
   hydrateFromStorage: () => Promise<void>;
 }
 
-const decodeAndSet = (token: string): Partial<AuthState> => {
+const applyAuth = (res: Awaited<ReturnType<typeof authApi.loginCustomer>>): Partial<AuthState> => ({
+  token:      res.data.accessToken,
+  userId:     res.data.userId,
+  name:       res.data.name,
+  email:      res.data.email,
+  role:       res.data.role,
+  isLoggedIn: true,
+});
+
+// Register FCM token silently after login (fire-and-forget)
+const registerFcm = async () => {
   try {
-    const { sub, name, email, role } = jwtDecode<JwtPayload>(token);
-    return { token, userId: sub, name, email, role, isLoggedIn: true };
-  } catch {
-    return {};
-  }
+    // expo-notifications must be installed; skip gracefully if not available
+    const Notifications = await import('expo-notifications').catch(() => null);
+    if (!Notifications) return;
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status !== 'granted') return;
+    const { data: fcmToken } = await Notifications.getExpoPushTokenAsync();
+    if (fcmToken) await notificationsApi.registerFcmToken(fcmToken);
+  } catch {}
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
-  token:      null,
-  userId:     null,
-  name:       null,
-  email:      null,
-  role:       null,
-  isLoggedIn: false,
-  loading:    false,
+  token: null, userId: null, name: null, email: null,
+  role: null, isLoggedIn: false, loading: false,
 
   loginCustomer: async (data) => {
     set({ loading: true });
     try {
       const res = await authApi.loginCustomer(data);
-      const token = res.data?.accessToken;
-      if (token) {
-        set({
-          ...decodeAndSet(token),
-          userId: res.data.userId,
-          name: res.data.name,
-          email: res.data.email,
-          role: res.data.role,
-          loading: false,
-        });
-      } else {
-        set({ loading: false });
-      }
-    } catch (e) {
-      set({ loading: false });
-      throw e;
-    }
+      set({ ...applyAuth(res), loading: false });
+      registerFcm();
+    } catch (e) { set({ loading: false }); throw e; }
   },
 
   registerCustomer: async (data) => {
     set({ loading: true });
     try {
       const res = await authApi.registerCustomer(data);
-      const token = res.data?.accessToken;
-      if (token) {
-        set({
-          ...decodeAndSet(token),
-          userId: res.data.userId,
-          name: res.data.name,
-          email: res.data.email,
-          role: res.data.role,
-          loading: false,
-        });
-      } else {
-        set({ loading: false });
-      }
-    } catch (e) {
-      set({ loading: false });
-      throw e;
-    }
+      set({ ...applyAuth(res), loading: false });
+      registerFcm();
+    } catch (e) { set({ loading: false }); throw e; }
   },
 
   registerProvider: async (data) => {
     set({ loading: true });
     try {
       const res = await authApi.registerProvider(data);
-      const token = res.data?.accessToken;
-      if (token) {
-        set({
-          ...decodeAndSet(token),
-          userId: res.data.userId,
-          name: res.data.name,
-          email: res.data.email,
-          role: res.data.role,
-          loading: false,
-        });
-      } else {
-        set({ loading: false });
-      }
-    } catch (e) {
-      set({ loading: false });
-      throw e;
-    }
+      set({ ...applyAuth(res), loading: false });
+      registerFcm();
+    } catch (e) { set({ loading: false }); throw e; }
   },
 
   logout: async () => {
     await clearToken();
-    set({
-      token: null, userId: null, name: null,
-      email: null, role: null, isLoggedIn: false,
-    });
+    await clearRefresh();
+    set({ token: null, userId: null, name: null, email: null, role: null, isLoggedIn: false });
   },
 
   hydrateFromStorage: async () => {
     const token = await getToken();
     if (!token) return;
     try {
-      const payload = jwtDecode<JwtPayload>(token);
-      if (payload.exp * 1000 < Date.now()) {
-        await clearToken();
-        return;
-      }
-      set(decodeAndSet(token));
-    } catch {
-      await clearToken();
-    }
+      const { exp } = jwtDecode<JwtPayload>(token);
+      if (exp * 1000 < Date.now()) { await clearToken(); await clearRefresh(); return; }
+      // We don't have name/role from JWT sub alone — keep isLoggedIn true
+      // and let next API call fail with 401→refresh if needed
+      set({ token, isLoggedIn: true });
+    } catch { await clearToken(); }
   },
 }));

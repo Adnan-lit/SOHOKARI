@@ -10,7 +10,7 @@ import { useAuthStore }  from '@store/authStore';
 import { bookingsApi }   from '@api/bookings';
 import { Colors }        from '@theme/colors';
 import Button            from '@components/common/Button';
-import type { RootNavProp } from '@types/navigation.types';
+import type { RootNavProp } from '@app-types/navigation.types';
 
 interface MenuItem {
   icon:    React.ComponentProps<typeof Ionicons>['name'];
@@ -32,7 +32,7 @@ export default function CustomerProfileScreen() {
   const stats = {
     total:     bookings?.length ?? 0,
     completed: bookings?.filter(b => b.status === 'COMPLETED').length ?? 0,
-    pending:   bookings?.filter(b => b.status === 'PENDING').length ?? 0,
+    pending:   bookings?.filter(b => b.status === 'REQUESTED').length ?? 0,
   };
 
   const handleLogout = () => {

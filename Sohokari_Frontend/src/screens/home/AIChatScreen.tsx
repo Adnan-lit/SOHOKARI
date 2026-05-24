@@ -72,7 +72,7 @@ export default function AIChatScreen() {
         id: (Date.now() + 1).toString(),
         role: "assistant",
         text: res.reply,
-        providers: res.providers,
+        providers: res.suggestedProviders,
       };
       setMessages((prev) => [...prev, aiMsg]);
     } catch (err: any) {
@@ -112,12 +112,12 @@ export default function AIChatScreen() {
             <View style={{ marginTop: 8 }}>
               {item.providers.map((p) => (
                 <ProviderCard
-                  key={p._id}
+                  key={p.providerId}
                   provider={p}
                   compact
                   onPress={() =>
                     navigation.navigate("ProviderProfile", {
-                      providerId: p._id,
+                      providerId: p.providerId,
                     })
                   }
                 />

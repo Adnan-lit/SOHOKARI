@@ -106,7 +106,7 @@ export default function CreateBookingScreen() {
         text1: "Booking created!",
         text2: "Waiting for provider to accept.",
       });
-      navigation.replace("BookingDetail", { bookingId: booking._id });
+      navigation.replace("BookingDetail", { bookingId: booking.bookingId });
     },
     onError: (err: any) => {
       Toast.show({

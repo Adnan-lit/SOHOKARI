@@ -2,7 +2,7 @@ export const BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://sohokari-backend.onrender.com';
 
 export const WS_URL =
-  process.env.EXPO_PUBLIC_WS_URL ?? 'wss://sohokari-backend.onrender.com/ws/chat';
+  process.env.EXPO_PUBLIC_WS_URL ?? 'wss://sohokari-backend.onrender.com/ws';
 
 export const API_TIMEOUT = 15000;
 

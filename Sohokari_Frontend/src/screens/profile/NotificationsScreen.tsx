@@ -11,21 +11,26 @@ import { notificationsApi }          from '@api/chat';
 import type { NotificationResponse } from '@api/chat';
 import { Colors }                    from '@theme/colors';
 import Button                        from '@components/common/Button';
+import { useNavigation } from '@react-navigation/native';
+import type { RootNavProp } from '@app-types/navigation.types';
 
 dayjs.extend(relativeTime);
 
-function getIcon(title: string): { icon: string; color: string } {
-  const t = title.toLowerCase();
-  if (t.includes('accept'))              return { icon: 'checkmark-circle', color: Colors.success };
-  if (t.includes('complet'))             return { icon: 'trophy',           color: Colors.accent  };
-  if (t.includes('cancel')||t.includes('reject')) return { icon: 'close-circle', color: Colors.error };
-  if (t.includes('message')||t.includes('chat'))  return { icon: 'chatbubble',   color: Colors.primary};
-  if (t.includes('booking'))             return { icon: 'calendar',         color: Colors.info    };
-  return                                        { icon: 'notifications',    color: Colors.textMuted };
-}
+// Use type enum (reliable) instead of title string matching
+const TYPE_ICON: Record<string, { icon: string; color: string }> = {
+  BOOKING_REQUESTED: { icon: 'time-outline',              color: Colors.warning  },
+  BOOKING_ACCEPTED:  { icon: 'checkmark-circle-outline',  color: Colors.success  },
+  BOOKING_REJECTED:  { icon: 'close-circle-outline',      color: Colors.error    },
+  BOOKING_STARTED:   { icon: 'construct-outline',         color: Colors.info     },
+  BOOKING_COMPLETED: { icon: 'trophy-outline',            color: Colors.accent   },
+  NEW_MESSAGE:       { icon: 'chatbubble-outline',        color: Colors.primary  },
+  REVIEW_RECEIVED:   { icon: 'star-outline',              color: Colors.warning  },
+  DEFAULT:           { icon: 'notifications-outline',     color: Colors.textMuted},
+};
 
 export default function NotificationsScreen() {
   const qc = useQueryClient();
+  const navigation = useNavigation<RootNavProp>();
 
   const { data, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ['notifications'],
@@ -38,17 +43,41 @@ export default function NotificationsScreen() {
     mutationFn: notificationsApi.markAllRead,
     onSuccess:  () => {
       qc.invalidateQueries({ queryKey: ['notifications'] });
-      qc.invalidateQueries({ queryKey: ['unreadCount']   });
+      qc.invalidateQueries({ queryKey: ['unreadCount'] });
     },
   });
 
   const notifications: NotificationResponse[] = data ?? [];
   const hasUnread = notifications.some(n => !n.read);
 
+  const handlePress = (item: NotificationResponse) => {
+    if (!item.read) {
+      notificationsApi.markRead(item.id).then(() => {
+        qc.invalidateQueries({ queryKey: ['notifications'] });
+        qc.invalidateQueries({ queryKey: ['unreadCount'] });
+      }).catch(() => {});
+    }
+
+    if (!item.referenceId) return;
+
+    if (item.type.startsWith('BOOKING_')) {
+      navigation.navigate('BookingDetail', { bookingId: item.referenceId });
+    } else if (item.type === 'NEW_MESSAGE') {
+      navigation.navigate('ChatRoom', { bookingId: item.referenceId, participantName: 'Chat' });
+    } else if (item.type === 'REVIEW_RECEIVED') {
+      navigation.navigate('ReviewList', { providerId: item.referenceId });
+    }
+  };
+
   const renderItem = ({ item }: { item: NotificationResponse }) => {
-    const { icon, color } = getIcon(item.title);
+    // Use type enum for reliable icon mapping
+    const { icon, color } = TYPE_ICON[item.type] ?? TYPE_ICON.DEFAULT;
     return (
-      <View style={[styles.item, !item.read && styles.itemUnread]}>
+      <TouchableOpacity 
+        style={[styles.item, !item.read && styles.itemUnread]}
+        onPress={() => handlePress(item)}
+        activeOpacity={0.8}
+      >
         <View style={[styles.iconWrap, { backgroundColor: color + '20' }]}>
           <Ionicons name={icon as any} size={22} color={color} />
         </View>
@@ -58,7 +87,7 @@ export default function NotificationsScreen() {
           <Text style={styles.time}>{dayjs(item.createdAt).fromNow()}</Text>
         </View>
         {!item.read && <View style={styles.unreadDot} />}
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -83,13 +112,16 @@ export default function NotificationsScreen() {
         data={notifications}
         keyExtractor={item => item.id}
         renderItem={renderItem}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[Colors.primary]} tintColor={Colors.primary} />}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch}
+            colors={[Colors.primary]} tintColor={Colors.primary} />
+        }
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={
           <View style={styles.empty}>
             <Ionicons name="notifications-off-outline" size={56} color={Colors.textMuted} />
             <Text style={styles.emptyTitle}>All caught up!</Text>
-            <Text style={styles.emptyText}>You have no notifications right now</Text>
+            <Text style={styles.emptyText}>No notifications right now</Text>
           </View>
         }
         showsVerticalScrollIndicator={false}
@@ -99,21 +131,21 @@ export default function NotificationsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container:   { flex: 1, backgroundColor: Colors.background },
-  center:      { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  markAllBar:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 8, backgroundColor: Colors.surface, borderBottomWidth: 0.5, borderBottomColor: Colors.border },
-  markAllCount:{ fontSize: 13, color: Colors.textSecondary },
-  item:        { flexDirection: 'row', alignItems: 'flex-start', padding: 16, gap: 12, backgroundColor: Colors.surface },
-  itemUnread:  { backgroundColor: '#F0F4FF' },
-  iconWrap:    { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  content:     { flex: 1, gap: 3 },
-  title:       { fontSize: 14, color: Colors.text, fontWeight: '500' },
-  titleUnread: { fontWeight: '700' },
-  body:        { fontSize: 13, color: Colors.textSecondary, lineHeight: 18 },
-  time:        { fontSize: 11, color: Colors.textMuted, marginTop: 2 },
-  unreadDot:   { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.accent, marginTop: 6 },
-  separator:   { height: 0.5, backgroundColor: Colors.border },
-  empty:       { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32 },
-  emptyTitle:  { fontSize: 16, fontWeight: '600', color: Colors.text, marginTop: 16 },
-  emptyText:   { fontSize: 13, color: Colors.textMuted, textAlign: 'center', marginTop: 6 },
+  container:    { flex: 1, backgroundColor: Colors.background },
+  center:       { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  markAllBar:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 8, backgroundColor: Colors.surface, borderBottomWidth: 0.5, borderBottomColor: Colors.border },
+  markAllCount: { fontSize: 13, color: Colors.textSecondary },
+  item:         { flexDirection: 'row', alignItems: 'flex-start', padding: 16, gap: 12, backgroundColor: Colors.surface },
+  itemUnread:   { backgroundColor: '#F0F4FF' },
+  iconWrap:     { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  content:      { flex: 1, gap: 3 },
+  title:        { fontSize: 14, color: Colors.text, fontWeight: '500' },
+  titleUnread:  { fontWeight: '700' },
+  body:         { fontSize: 13, color: Colors.textSecondary, lineHeight: 18 },
+  time:         { fontSize: 11, color: Colors.textMuted, marginTop: 2 },
+  unreadDot:    { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.accent, marginTop: 6 },
+  separator:    { height: 0.5, backgroundColor: Colors.border },
+  empty:        { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32 },
+  emptyTitle:   { fontSize: 16, fontWeight: '600', color: Colors.text, marginTop: 16 },
+  emptyText:    { fontSize: 13, color: Colors.textMuted, textAlign: 'center', marginTop: 6 },
 });

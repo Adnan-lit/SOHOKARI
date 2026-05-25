@@ -35,7 +35,7 @@ export default function BookingDetailScreen() {
   const { data: reviewExists } = useQuery({
     queryKey: ['reviewExists', params.bookingId],
     queryFn:  () => reviewsApi.checkExists(params.bookingId),
-    enabled:  booking?.status === 'COMPLETED' && role === 'CUSTOMER',
+    enabled:  (booking?.status === 'COMPLETED' || booking?.status === 'REVIEWED') && role === 'CUSTOMER',
   });
 
   const invalidate = () => {

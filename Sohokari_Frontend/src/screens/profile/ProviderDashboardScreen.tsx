@@ -150,7 +150,7 @@ export default function ProviderDashboardScreen() {
               <StatusBadge status={booking.status} size="sm" />
             </TouchableOpacity>
           ))}
-          <Button title="View All Bookings" variant="outline" onPress={() => {}} style={{ marginTop: 8 }} />
+          <Button title="View All Bookings" variant="outline" onPress={() => navigation.navigate("MyBookings")} style={{ marginTop: 8 }} />
         </View>
       )}
 
@@ -161,8 +161,8 @@ export default function ProviderDashboardScreen() {
           {[
             { icon: 'star-outline',      label: 'My Reviews',  onPress: () => provider && navigation.navigate('ReviewList', { providerId: provider.providerId }) },
             { icon: 'bar-chart-outline', label: 'Reputation',  onPress: () => provider && navigation.navigate('ProviderProfile', { providerId: provider.providerId }) },
-            { icon: 'chatbubbles-outline',label: 'Messages',   onPress: () => {} },
-            { icon: 'notifications-outline',label:'Alerts',    onPress: () => {} },
+            { icon: 'chatbubbles-outline',label: 'Messages',   onPress: () => navigation.navigate('Chat') },
+            { icon: 'notifications-outline',label:'Alerts',    onPress: () => navigation.navigate('Notifications') },
           ].map(({ icon, label, onPress }) => (
             <TouchableOpacity key={label} style={styles.actionBtn} onPress={onPress}>
               <View style={styles.actionIcon}>

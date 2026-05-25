@@ -8,7 +8,6 @@ docker compose up --build
 
 ## Expected logs (first run)
 
-- `sohokari-mongo  | Waiting for connections`
 - `sohokari-app    | Started SohokariBackendApplication`
 - `sohokari-app    | Firebase initialized successfully`
 

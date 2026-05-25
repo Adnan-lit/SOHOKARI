@@ -43,9 +43,9 @@ export default function CustomerProfileScreen() {
   };
 
   const menuItems: MenuItem[] = [
-    { icon: 'calendar-outline',      label: 'My Bookings',      onPress: () => {} },
-    { icon: 'chatbubbles-outline',   label: 'Messages',         onPress: () => {} },
-    { icon: 'notifications-outline', label: 'Notifications',    onPress: () => {} },
+    { icon: 'calendar-outline',      label: 'My Bookings',      onPress: () => navigation.navigate('Bookings') },
+    { icon: 'chatbubbles-outline',   label: 'Messages',         onPress: () => navigation.navigate('Chat') },
+    { icon: 'notifications-outline', label: 'Notifications',    onPress: () => navigation.navigate('Notifications') },
     { icon: 'help-circle-outline',   label: 'Help & Support',   onPress: () => {} },
     { icon: 'document-text-outline', label: 'Terms of Service', onPress: () => {} },
     { icon: 'log-out-outline',       label: 'Sign Out',         onPress: handleLogout, danger: true },

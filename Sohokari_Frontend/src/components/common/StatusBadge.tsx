@@ -9,7 +9,6 @@ const STATUS_COLORS: Record<string, string> = {
   REVIEWED:    '#1D9E75',
   CANCELLED:   '#9CA3AF',
   REJECTED:    '#E24B4A',
-  PENDING:     '#EF9F27',
 };
 
 interface Props { status: string; size?: 'sm' | 'md' }

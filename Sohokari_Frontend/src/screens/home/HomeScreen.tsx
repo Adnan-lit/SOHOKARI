@@ -51,7 +51,7 @@ export default function HomeScreen() {
           <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.notifBtn} onPress={() => {}}>
+          <TouchableOpacity style={styles.notifBtn} onPress={() => navigation.navigate('Notifications')}>
             <Ionicons name="notifications-outline" size={22} color={Colors.white} />
           </TouchableOpacity>
         </View>

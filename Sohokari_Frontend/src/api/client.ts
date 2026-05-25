@@ -8,7 +8,6 @@ export const TOKEN_KEY   = 'sohokari_token';
 export const REFRESH_KEY = 'sohokari_refresh_token';
 
 const isWeb = Platform.OS === 'web';
-
 export const saveToken    = (t: string) => isWeb ? AsyncStorage.setItem(TOKEN_KEY, t)    : SecureStore.setItemAsync(TOKEN_KEY, t);
 export const clearToken   = ()          => isWeb ? AsyncStorage.removeItem(TOKEN_KEY)     : SecureStore.deleteItemAsync(TOKEN_KEY);
 export const getToken     = ()          => isWeb ? AsyncStorage.getItem(TOKEN_KEY)         : SecureStore.getItemAsync(TOKEN_KEY);
@@ -32,8 +31,17 @@ client.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// Response: on 401 attempt one silent token refresh
-let refreshing = false;
+// ─── Token refresh with request queue ─────────────────────
+// Requests that 401 while refresh is in-flight are queued
+// and resolved/rejected once refresh completes.
+let isRefreshing = false;
+let failedQueue: { resolve: (token: string) => void; reject: (err: unknown) => void }[] = [];
+
+const processQueue = (error: unknown, token: string | null) => {
+  failedQueue.forEach(p => error ? p.reject(error) : p.resolve(token!));
+  failedQueue = [];
+};
+
 client.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<{ message?: string }>) => {
@@ -41,28 +49,47 @@ client.interceptors.response.use(
 
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true;
-      if (!refreshing) {
-        refreshing = true;
-        try {
-          const refreshToken = await getRefresh();
-          if (refreshToken) {
-            const res = await axios.post(
-              `${BASE_URL}/api/v1/auth/refresh-token`,
-              {},
-              { headers: { 'Refresh-Token': refreshToken } },
-            );
-            const newToken = res.data?.data?.accessToken;
-            if (newToken) {
-              await saveToken(newToken);
-              original.headers!.Authorization = `Bearer ${newToken}`;
-              refreshing = false;
-              return client(original);
-            }
-          }
-        } catch {
-          // refresh failed — let the 401 bubble up so authStore can logout
+
+      if (isRefreshing) {
+        // Queue this request until refresh completes
+        return new Promise((resolve, reject) => {
+          failedQueue.push({
+            resolve: (token) => {
+              original.headers!.Authorization = `Bearer ${token}`;
+              resolve(client(original));
+            },
+            reject,
+          });
+        });
+      }
+
+      isRefreshing = true;
+      try {
+        const refreshToken = await getRefresh();
+        if (!refreshToken) throw new Error('No refresh token');
+
+        const res = await axios.post(
+          `${BASE_URL}/api/v1/auth/refresh-token`,
+          {},
+          { headers: { 'Refresh-Token': refreshToken } },
+        );
+        const newToken = res.data?.data?.accessToken;
+        if (!newToken) throw new Error('No access token in refresh response');
+
+        await saveToken(newToken);
+        original.headers!.Authorization = `Bearer ${newToken}`;
+        processQueue(null, newToken);
+        return client(original);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        // Dispatch logout event so authStore can clear state
+        // (avoids circular import by using a custom event)
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('sohokari:logout'));
         }
-        refreshing = false;
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
 

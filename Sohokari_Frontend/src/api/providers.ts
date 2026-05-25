@@ -3,7 +3,6 @@ import type { ServiceCategory } from '@constants/config';
 
 type ApiResponse<T> = { success: boolean; message: string; data: T };
 
-// ✅ Matches ProviderProfileResponse from backend
 export type ProviderProfileResponse = {
   userId:                  string;
   name:                    string;
@@ -27,7 +26,6 @@ export type ProviderProfileResponse = {
   memberSince?:            string;
 };
 
-// ✅ Matches ProviderSummaryResponse from backend (used in nearby + search)
 export type ProviderSummaryResponse = {
   providerId:              string;
   userId:                  string;
@@ -45,44 +43,50 @@ export type ProviderSummaryResponse = {
   distanceKm?:             number;
 };
 
-// ✅ Matches ReputationResponse from backend
 export type ReputationResponse = {
-  providerId:          string;
-  reputationScore?:    number;
-  averageRating?:      number;
-  completionRate?:     number;
-  responseRate?:       number;
-  totalReviews?:       number;
-  totalCompleted?:     number;
-  totalBookings?:      number;
-  badges:              string[];
-  ratingComponent?:    number;
-  completionComponent?:number;
-  responseComponent?:  number;
-  reviewComponent?:    number;
-  badgeComponent?:     number;
+  providerId:           string;
+  reputationScore?:     number;
+  averageRating?:       number;
+  completionRate?:      number;
+  responseRate?:        number;
+  totalReviews:         number;   // Long in Java → number (not optional)
+  totalCompleted:       number;
+  totalBookings:        number;
+  badges:               string[];
+  ratingComponent?:     number;
+  completionComponent?: number;
+  responseComponent?:   number;
+  reviewComponent?:     number;
+  badgeComponent?:      number;
+};
+
+// ✅ Swagger: ActivitySummaryResponse (was Record<string,unknown>)
+export type ActivitySummaryResponse = {
+  totalBookings:     number;
+  completedBookings: number;
+  cancelledBookings: number;
+  pendingBookings:   number;
+  reviewsGiven:      number;
+  reviewsReceived:   number;
+  averageRating:     number;
 };
 
 export const providersApi = {
-  // ✅ GET /api/v1/providers/{providerId} — returns ProviderProfileResponse
   getById: async (providerId: string): Promise<ProviderProfileResponse> => {
     const { data: res } = await client.get<ApiResponse<ProviderProfileResponse>>(`/providers/${providerId}`);
     return res.data;
   },
 
-  // ✅ GET /api/v1/providers/me — provider's own profile
   getMyProfile: async (): Promise<ProviderProfileResponse> => {
     const { data: res } = await client.get<ApiResponse<ProviderProfileResponse>>('/providers/me');
     return res.data;
   },
 
-  // ✅ GET /api/v1/providers/nearby — params: lat, lng, radius, category
   getNearby: async (params: { lat: number; lng: number; radius?: number; category?: ServiceCategory }): Promise<ProviderSummaryResponse[]> => {
     const { data: res } = await client.get<ApiResponse<ProviderSummaryResponse[]>>('/providers/nearby', { params });
     return res.data;
   },
 
-  // ✅ PUT /api/v1/providers/me/profile
   updateProfile: async (payload: {
     bio?: string; skills?: string[]; hourlyRate?: number;
     serviceArea?: string; longitude?: number; latitude?: number;
@@ -91,24 +95,29 @@ export const providersApi = {
     return res.data;
   },
 
-  // ✅ PUT /api/v1/providers/me/availability — returns { isAvailable: boolean }
+  // ✅ Swagger: returns ApiResponseMapStringBoolean → {"isAvailable": true}
   toggleAvailability: async (): Promise<boolean> => {
-    const { data: res } = await client.put<ApiResponse<{ isAvailable: boolean }>>('/providers/me/availability');
-    return res.data.isAvailable;
+    const { data: res } = await client.put<ApiResponse<Record<string, boolean>>>('/providers/me/availability');
+    // Key is "isAvailable" based on backend field naming
+    return res.data['isAvailable'] ?? Object.values(res.data)[0] ?? false;
   },
 
-  // ✅ GET /api/v1/providers/{providerId}/reputation
   getReputation: async (providerId: string): Promise<ReputationResponse> => {
     const { data: res } = await client.get<ApiResponse<ReputationResponse>>(`/providers/${providerId}/reputation`);
     return res.data;
   },
 
-  // ✅ GET /api/v1/services/search — note: different base path!
   search: async (params: {
     q?: string; category?: ServiceCategory; minPrice?: number; maxPrice?: number;
-    minRating?: number; available?: boolean; sortBy?: string; page?: number; size?: number;
+    minRating?: number; available?: boolean; lat?: number; lng?: number;
+    radius?: number; sortBy?: string; page?: number; size?: number;
   }): Promise<ProviderSummaryResponse[]> => {
     const { data: res } = await client.get<ApiResponse<{ content: ProviderSummaryResponse[] }>>('/services/search', { params });
     return res.data.content;
+  },
+
+  getActivitySummary: async (): Promise<ActivitySummaryResponse> => {
+    const { data: res } = await client.get<ApiResponse<ActivitySummaryResponse>>('/activity/summary');
+    return res.data;
   },
 };

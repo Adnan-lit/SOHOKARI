@@ -20,7 +20,7 @@ export const Colors = {
   white: '#FFFFFF',
   black: '#000000',
 
-  statusPending:    '#EF9F27',
+  statusRequested:  '#EF9F27',
   statusAccepted:   '#378ADD',
   statusInProgress: '#8B5CF6',
   statusCompleted:  '#1D9E75',
@@ -30,7 +30,7 @@ export const Colors = {
 
 export const statusColor = (status: string): string => {
   const map: Record<string, string> = {
-    PENDING:     Colors.statusPending,
+    REQUESTED:   Colors.statusRequested,
     ACCEPTED:    Colors.statusAccepted,
     IN_PROGRESS: Colors.statusInProgress,
     COMPLETED:   Colors.statusCompleted,

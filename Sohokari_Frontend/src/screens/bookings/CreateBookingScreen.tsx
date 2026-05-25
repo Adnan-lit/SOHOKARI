@@ -68,6 +68,13 @@ export default function CreateBookingScreen() {
     notes: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
+
+  // Pre-fill serviceCategory once provider data arrives
+  useEffect(() => {
+    if (provider?.serviceCategory && !form.serviceCategory) {
+      setForm(prev => ({ ...prev, serviceCategory: provider.serviceCategory }));
+    }
+  }, [provider?.serviceCategory]);
   const [showCats, setShowCats] = useState(false);
   const [showSlots, setShowSlots] = useState(false);
 
@@ -77,11 +84,15 @@ export default function CreateBookingScreen() {
   const validate = (): boolean => {
     const e: FormErrors = {};
     if (!form.serviceCategory) e.serviceCategory = "Select a service category";
-    if (!form.scheduledDate) e.scheduledDate = "Select a date";
-    else {
-      const d = new Date(form.scheduledDate);
-      if (isNaN(d.getTime()) || d < new Date(new Date().toDateString()))
-        e.scheduledDate = "Enter a valid future date (YYYY-MM-DD)";
+    if (!form.scheduledDate.trim()) {
+      e.scheduledDate = "Select a date";
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(form.scheduledDate.trim())) {
+      e.scheduledDate = "Must be in YYYY-MM-DD format (e.g. 2026-05-26)";
+    } else {
+      const d = new Date(form.scheduledDate.trim());
+      if (isNaN(d.getTime()) || d < new Date(new Date().toDateString())) {
+        e.scheduledDate = "Enter a valid future date";
+      }
     }
     if (!form.scheduledTime) e.scheduledTime = "Select a time slot";
     if (!form.address.trim()) e.address = "Address is required";
@@ -94,7 +105,7 @@ export default function CreateBookingScreen() {
       bookingsApi.create({
         providerId: params.providerId,
         serviceCategory: form.serviceCategory as ServiceCategory,
-        scheduledDate: form.scheduledDate,
+        scheduledDate: form.scheduledDate.trim(),
         scheduledTime: form.scheduledTime,
         address: form.address.trim(),
         notes: form.notes.trim() || undefined,

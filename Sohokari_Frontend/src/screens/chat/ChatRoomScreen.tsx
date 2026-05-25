@@ -21,7 +21,7 @@ import { useAuthStore } from "@store/authStore";
 import { Colors } from "@theme/colors";
 import { WS_URL } from "@constants/config";
 import type { RootStackParamList } from "@app-types/navigation.types";
-import type { ChatMessage } from "@app-types/models";
+import type { ChatMessageResponse } from "@api/chat";
 
 type RoutePropType = RouteProp<RootStackParamList, "ChatRoom">;
 
@@ -32,7 +32,7 @@ export default function ChatRoomScreen() {
   const listRef = useRef<FlatList>(null);
   const stompRef = useRef<Client | null>(null);
 
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessageResponse[]>([]);
   const [input, setInput] = useState("");
   const [connected, setConnected] = useState(false);
   const [sending, setSending] = useState(false);
@@ -49,6 +49,7 @@ export default function ChatRoomScreen() {
 
   // WebSocket connection
   useEffect(() => {
+    if (Platform.OS === 'web') return;
     let client: Client;
 
     const connect = async () => {
@@ -63,7 +64,7 @@ export default function ChatRoomScreen() {
           setConnected(true);
           client.subscribe(`/user/queue/messages`, (frame) => {
             try {
-              const msg: ChatMessage = JSON.parse(frame.body);
+              const msg: ChatMessageResponse = JSON.parse(frame.body);
               if (msg.bookingId === params.bookingId) {
                 setMessages((prev) => [...prev, msg]);
                 setTimeout(
@@ -105,7 +106,7 @@ export default function ChatRoomScreen() {
           }),
         });
         // Optimistic update
-        const optimistic: ChatMessage = {
+        const optimistic: ChatMessageResponse = {
           messageId: `tmp-${Date.now()}`,
           bookingId: params.bookingId,
           senderId: userId ?? "",
@@ -132,7 +133,7 @@ export default function ChatRoomScreen() {
     }
   }, [input, sending, params.bookingId, userId]);
 
-  const renderMessage = ({ item }: { item: ChatMessage }) => {
+  const renderMessage = ({ item }: { item: ChatMessageResponse }) => {
     const isMe = item.senderId === userId;
     return (
       <View
@@ -166,7 +167,7 @@ export default function ChatRoomScreen() {
       keyboardVerticalOffset={90}
     >
       {/* Connection status */}
-      {!connected && (
+      {!connected && Platform.OS !== "web" && (
         <View style={styles.connecting}>
           <ActivityIndicator size="small" color={Colors.white} />
           <Text style={styles.connectingText}>Connecting…</Text>

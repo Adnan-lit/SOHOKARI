@@ -3,7 +3,7 @@ import client from './client';
 type ApiResponse<T> = { success: boolean; message: string; data: T };
 type Page<T> = { content: T[]; totalElements: number; totalPages: number };
 
-// ✅ Matches ChatMessageResponse from backend
+// ✅ Swagger: ChatMessageResponse
 export type ChatMessageResponse = {
   messageId:   string;
   bookingId:   string;
@@ -11,45 +11,47 @@ export type ChatMessageResponse = {
   senderName:  string;
   receiverId:  string;
   content:     string;
-  messageType: 'TEXT' | 'IMAGE' | 'SYSTEM';
-  isRead:      boolean;
+  messageType: 'TEXT' | 'IMAGE' | 'LOCATION'; // SYSTEM removed, LOCATION added
   sentAt:      string;
+  read:        boolean; // was isRead — Swagger says read
 };
 
-// ✅ Matches ConversationResponse from backend
+// ✅ Swagger: ConversationResponse
 export type ConversationResponse = {
-  bookingId:      string;
-  otherUserId:    string;
-  otherUserName:  string;
-  otherUserPhoto?:string;
-  lastMessage?:   string;
-  lastMessageAt?: string;
-  unreadCount:    number;
+  bookingId:       string;
+  otherUserId:     string;
+  otherUserName:   string;
+  otherUserPhoto?: string;
+  lastMessage?:    string;
+  lastMessageAt?:  string;
+  unreadCount:     number;
 };
 
-// ✅ Matches Notification model from backend
+// ✅ Swagger: Notification (with type enum + referenceId)
 export type NotificationResponse = {
-  id:        string;
-  userId:    string;
-  title:     string;
-  body:      string;
-  read:      boolean;
-  createdAt: string;
+  id:           string;
+  userId:       string;
+  title:        string;
+  body:         string;
+  type:         | 'BOOKING_REQUESTED' | 'BOOKING_ACCEPTED' | 'BOOKING_REJECTED'
+                | 'BOOKING_STARTED'   | 'BOOKING_COMPLETED'
+                | 'NEW_MESSAGE'       | 'REVIEW_RECEIVED';
+  referenceId?: string;
+  read:         boolean;
+  createdAt:    string;
 };
 
 export const chatApi = {
-  // ✅ POST /api/v1/chats/send
   sendMessage: async (payload: {
     bookingId:   string;
     receiverId:  string;
     content:     string;
-    messageType: 'TEXT' | 'IMAGE' | 'SYSTEM';
+    messageType: 'TEXT' | 'IMAGE' | 'LOCATION';
   }): Promise<ChatMessageResponse> => {
     const { data: res } = await client.post<ApiResponse<ChatMessageResponse>>('/chats/send', payload);
     return res.data;
   },
 
-  // ✅ GET /api/v1/chats/{bookingId}/messages — returns Page<ChatMessageResponse>
   getMessages: async (bookingId: string, page = 0, size = 50): Promise<ChatMessageResponse[]> => {
     const { data: res } = await client.get<ApiResponse<Page<ChatMessageResponse>>>(
       `/chats/${bookingId}/messages`, { params: { page, size } }
@@ -57,20 +59,21 @@ export const chatApi = {
     return res.data.content;
   },
 
-  // ✅ GET /api/v1/chats/conversations
   getConversations: async (): Promise<ConversationResponse[]> => {
     const { data: res } = await client.get<ApiResponse<ConversationResponse[]>>('/chats/conversations');
     return res.data;
   },
+
+  deleteMessage: async (messageId: string): Promise<void> => {
+    await client.delete(`/chats/${messageId}`);
+  },
 };
 
 export const notificationsApi = {
-  // ✅ POST /api/v1/notifications/fcm-token
   registerFcmToken: async (token: string): Promise<void> => {
     await client.post('/notifications/fcm-token', { token });
   },
 
-  // ✅ GET /api/v1/notifications — returns Page<Notification>
   getAll: async (page = 0, size = 20): Promise<NotificationResponse[]> => {
     const { data: res } = await client.get<ApiResponse<Page<NotificationResponse>>>(
       '/notifications', { params: { page, size } }
@@ -78,18 +81,16 @@ export const notificationsApi = {
     return res.data.content;
   },
 
-  // ✅ GET /api/v1/notifications/unread-count — returns { count: number }
+  // ✅ Swagger: returns ApiResponseMapStringLong → { "count": N }
   getUnreadCount: async (): Promise<number> => {
-    const { data: res } = await client.get<ApiResponse<{ count: number }>>('/notifications/unread-count');
-    return res.data.count;
+    const { data: res } = await client.get<ApiResponse<Record<string, number>>>('/notifications/unread-count');
+    return res.data['count'] ?? Object.values(res.data)[0] ?? 0;
   },
 
-  // ✅ PUT /api/v1/notifications/{id}/read — mark single
   markRead: async (id: string): Promise<void> => {
     await client.put(`/notifications/${id}/read`);
   },
 
-  // ✅ PUT /api/v1/notifications/read-all
   markAllRead: async (): Promise<void> => {
     await client.put('/notifications/read-all');
   },

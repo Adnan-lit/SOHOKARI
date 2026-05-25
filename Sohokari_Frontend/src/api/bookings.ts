@@ -78,8 +78,8 @@ export const bookingsApi = {
     return res.data;
   },
 
-  cancel: async (id: string, reason?: string): Promise<BookingResponse> => {
-    const { data: res } = await client.put<ApiResponse<BookingResponse>>(`/bookings/${id}/cancel`, reason ? { reason } : undefined);
+  cancel: async (id: string, reason = ''): Promise<BookingResponse> => {
+    const { data: res } = await client.put<ApiResponse<BookingResponse>>(`/bookings/${id}/cancel`, { reason: reason || '' });
     return res.data;
   },
 };

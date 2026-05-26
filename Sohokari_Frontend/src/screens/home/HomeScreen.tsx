@@ -14,10 +14,12 @@ import { Colors }         from '@theme/colors';
 import { DEFAULT_LOCATION, ServiceCategory } from '@constants/config';
 import ProviderCard       from '@components/common/ProviderCard';
 import CategoryPills      from '@components/common/CategoryPills';
-import type { RootNavProp } from '@app-types/navigation.types';
+import EmptyState         from '@components/common/EmptyState';
+import Skeleton           from '@components/common/Skeleton';
+import type { CustomerTabNavProp } from '@app-types/navigation.types';
 
 export default function HomeScreen() {
-  const navigation        = useNavigation<RootNavProp>();
+  const navigation        = useNavigation<CustomerTabNavProp>();
   const { name, logout }  = useAuthStore();
   const [category, setCat]= useState<ServiceCategory | null>(null);
   const [coords, setCoords] = useState(DEFAULT_LOCATION);
@@ -93,9 +95,19 @@ export default function HomeScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={styles.loadingText}>Finding providers near you…</Text>
+      <View style={{ flex: 1, backgroundColor: Colors.background }}>
+        {renderHeader()}
+        <View style={{ paddingHorizontal: 16 }}>
+          {[1, 2, 3].map(i => (
+            <View key={i} style={{ backgroundColor: Colors.surface, borderRadius: 16, padding: 16, marginBottom: 16, flexDirection: 'row' }}>
+              <Skeleton width={52} height={52} borderRadius={26} />
+              <View style={{ flex: 1, marginLeft: 14, justifyContent: 'center' }}>
+                <Skeleton width="60%" height={16} style={{ marginBottom: 10 }} />
+                <Skeleton width="40%" height={14} />
+              </View>
+            </View>
+          ))}
+        </View>
       </View>
     );
   }
@@ -109,11 +121,11 @@ export default function HomeScreen() {
       )}
       ListHeaderComponent={renderHeader}
       ListEmptyComponent={
-        <View style={styles.empty}>
-          <Ionicons name="search-outline" size={48} color={Colors.textMuted} />
-          <Text style={styles.emptyTitle}>No providers found</Text>
-          <Text style={styles.emptyText}>Try a different category or increase search radius</Text>
-        </View>
+        <EmptyState 
+          icon="search-outline" 
+          title="No providers found" 
+          description="Try a different category or increase search radius" 
+        />
       }
       contentContainerStyle={styles.list}
       refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[Colors.primary]} tintColor={Colors.primary} />}

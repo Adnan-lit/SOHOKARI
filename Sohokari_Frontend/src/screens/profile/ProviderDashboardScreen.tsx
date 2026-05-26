@@ -14,21 +14,22 @@ import type { BookingResponse }      from '@api/bookings';
 import { Colors }                    from '@theme/colors';
 import StatusBadge                   from '@components/common/StatusBadge';
 import Button                        from '@components/common/Button';
-import type { RootNavProp }          from '@app-types/navigation.types';
+import Skeleton                      from '@components/common/Skeleton';
+import type { ProviderTabNavProp }          from '@app-types/navigation.types';
 
 export default function ProviderDashboardScreen() {
-  const navigation         = useNavigation<RootNavProp>();
+  const navigation         = useNavigation<ProviderTabNavProp>();
   const { name, email, userId, logout } = useAuthStore();
   const qc                 = useQueryClient();
 
-  const { data: bookings } = useQuery({
+  const { data: bookings, isLoading: bookingsLoading } = useQuery({
     queryKey: ['myBookings', 'ALL'],
     queryFn:  () => bookingsApi.getMy(),
     staleTime: 30_000,
   });
 
   // Use getMyProfile() for the logged-in provider (authenticated endpoint)
-  const { data: provider } = useQuery({
+  const { data: provider, isLoading: providerLoading } = useQuery({
     queryKey: ['myProviderProfile'],
     queryFn:  providersApi.getMyProfile,
     staleTime: 30_000,
@@ -59,6 +60,27 @@ export default function ProviderDashboardScreen() {
       { text: 'Sign Out', style: 'destructive', onPress: () => logout() },
     ]);
   };
+
+  if (bookingsLoading || providerLoading) {
+    return (
+      <View style={[styles.container, { paddingTop: 24 }]}>
+        <View style={styles.hero}>
+          <View style={{ flexDirection: 'row', gap: 14 }}>
+            <Skeleton width={60} height={60} borderRadius={30} />
+            <View style={{ flex: 1, justifyContent: 'center' }}>
+              <Skeleton width="50%" height={18} style={{ marginBottom: 8 }} />
+              <Skeleton width="70%" height={14} />
+            </View>
+          </View>
+        </View>
+        <View style={styles.statsGrid}>
+          {[1, 2, 3, 4].map(i => (
+            <Skeleton key={i} width="47%" height={80} borderRadius={12} style={{ marginBottom: 10 }} />
+          ))}
+        </View>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>

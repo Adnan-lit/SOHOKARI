@@ -18,7 +18,7 @@ module.exports = function (api) {
           '@app-types':  './src/types',
         },
       }],
-      // 'react-native-reanimated/plugin' ← add this back later when needed
+      'react-native-reanimated/plugin'
     ],
   };
 };

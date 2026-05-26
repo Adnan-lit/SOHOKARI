@@ -3,7 +3,26 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider }       from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
-import RootNavigator from './src/navigation/RootNavigator';
+import RootNavigator, { navigationRef } from './src/navigation/RootNavigator';
+import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
+if (Platform.OS === 'android') {
+  Notifications.setNotificationChannelAsync('default', {
+    name: 'default',
+    importance: Notifications.AndroidImportance.MAX,
+    vibrationPattern: [0, 250, 250, 250],
+    lightColor: '#FF231F7C',
+  });
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -12,6 +31,22 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+  React.useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+      const data = response.notification.request.content.data;
+      if (data?.type === 'NEW_MESSAGE' && data?.bookingId) {
+        if (navigationRef.isReady()) {
+          navigationRef.navigate('ChatRoom', {
+            bookingId: data.bookingId,
+            participantName: data.senderName || 'Chat',
+            receiverId: data.senderId,
+          });
+        }
+      }
+    });
+    return () => subscription.remove();
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

@@ -21,6 +21,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.adnan.sohokari",
+      "googleServicesFile": "./google-services.json",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
@@ -30,6 +31,12 @@
     "plugins": [
       "expo-secure-store",
       "expo-notifications"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "590e266c-f90d-478a-ae47-2d44db3351cc"
+      }
+    },
+    "owner": "cosmicmen"
   }
 }

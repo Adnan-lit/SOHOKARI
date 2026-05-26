@@ -15,6 +15,7 @@ import { reviewsApi } from "@api/reviews";
 import type { ReviewResponse } from "@api/reviews";
 import { Colors } from "@theme/colors";
 import Button from "@components/common/Button";
+import { useAuthStore } from "@store/authStore";
 import type {
   RootNavProp,
   RootStackParamList,
@@ -26,6 +27,7 @@ export default function ProviderProfileScreen() {
   const navigation = useNavigation<RootNavProp>();
   const { params } = useRoute<RoutePropType>();
   const { providerId } = params;
+  const { userId, role } = useAuthStore();
 
   const { data: provider, isLoading } = useQuery({
     queryKey: ["provider", providerId],
@@ -129,9 +131,24 @@ export default function ProviderProfileScreen() {
         </View>
       </View>
 
-      {/* Book button */}
-      {provider.isAvailable && (
-        <View style={styles.bookWrap}>
+      {/* Actions */}
+      <View style={styles.bookWrap}>
+        {role === "CUSTOMER" && (
+          <Button
+            title="Ask a Query"
+            onPress={() =>
+              navigation.navigate("ChatRoom", {
+                bookingId: `inq_${userId}_${provider.userId}`,
+                participantName: providerName,
+                receiverId: provider.userId,
+              })
+            }
+            style={{ flex: 1, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.primary }}
+            textStyle={{ color: Colors.primary }}
+          />
+        )}
+        {provider.isAvailable && role === "CUSTOMER" && <View style={{ width: 12 }} />}
+        {provider.isAvailable && role === "CUSTOMER" && (
           <Button
             title="Book This Provider"
             onPress={() =>
@@ -141,8 +158,8 @@ export default function ProviderProfileScreen() {
             }
             style={{ flex: 1 }}
           />
-        </View>
-      )}
+        )}
+      </View>
 
       {/* About */}
       {provider.bio ? (

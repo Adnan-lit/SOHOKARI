@@ -34,7 +34,7 @@ export default function NotificationsScreen() {
 
   const { data, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ['notifications'],
-    queryFn:  notificationsApi.getAll,
+    queryFn:  () => notificationsApi.getAll(),
     staleTime: 15_000,
     refetchInterval: 30_000,
   });
@@ -47,7 +47,7 @@ export default function NotificationsScreen() {
     },
   });
 
-  const notifications: NotificationResponse[] = data ?? [];
+  const notifications: NotificationResponse[] = (data as NotificationResponse[]) ?? [];
   const hasUnread = notifications.some(n => !n.read);
 
   const handlePress = (item: NotificationResponse) => {

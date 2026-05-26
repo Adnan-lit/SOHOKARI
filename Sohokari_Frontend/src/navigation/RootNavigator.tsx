@@ -1,5 +1,5 @@
 import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuthStore } from "@store/authStore";
 import type { RootStackParamList } from "@app-types/navigation.types";
@@ -22,6 +22,8 @@ import AIChatScreen from "@screens/home/AIChatScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+export const navigationRef = createNavigationContainerRef<RootStackParamList>();
+
 export default function RootNavigator() {
   const { isLoggedIn, role, hydrateFromStorage } = useAuthStore();
 
@@ -30,7 +32,7 @@ export default function RootNavigator() {
   }, [hydrateFromStorage]);
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
         screenOptions={{
           headerStyle: { backgroundColor: Colors.primary },

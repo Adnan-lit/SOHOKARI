@@ -10,7 +10,7 @@ import { useAuthStore }  from '@store/authStore';
 import { bookingsApi }   from '@api/bookings';
 import { Colors }        from '@theme/colors';
 import Button            from '@components/common/Button';
-import type { RootNavProp } from '@app-types/navigation.types';
+import type { CustomerTabNavProp } from '@app-types/navigation.types';
 
 interface MenuItem {
   icon:    React.ComponentProps<typeof Ionicons>['name'];
@@ -20,7 +20,7 @@ interface MenuItem {
 }
 
 export default function CustomerProfileScreen() {
-  const navigation        = useNavigation<RootNavProp>();
+  const navigation        = useNavigation<CustomerTabNavProp>();
   const { name, email, logout } = useAuthStore();
 
   const { data: bookings } = useQuery({

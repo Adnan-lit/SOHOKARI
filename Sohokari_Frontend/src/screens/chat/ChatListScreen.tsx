@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
-import { useNavigation }  from '@react-navigation/native';
-import { useQuery }       from '@tanstack/react-query';
+import { useNavigation, useFocusEffect }  from '@react-navigation/native';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ionicons }       from '@expo/vector-icons';
+import * as Notifications from 'expo-notifications';
 import dayjs              from 'dayjs';
 import relativeTime       from 'dayjs/plugin/relativeTime';
 import { chatApi }        from '@api/chat';
@@ -21,6 +22,23 @@ export default function ChatListScreen() {
     staleTime: 15_000,
     refetchInterval: 30_000,
   });
+
+  // Refetch when returning to this screen
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
+
+  React.useEffect(() => {
+    const subscription = Notifications.addNotificationReceivedListener(notification => {
+      const data = notification.request.content.data;
+      if (data?.type === 'NEW_MESSAGE') {
+        refetch();
+      }
+    });
+    return () => subscription.remove();
+  }, [refetch]);
 
   const conversations: ConversationResponse[] = data ?? [];
 
@@ -47,7 +65,14 @@ export default function ChatListScreen() {
         </View>
         <View style={styles.content}>
           <View style={styles.topRow}>
-            <Text style={[styles.name, unread && styles.nameBold]}>{name}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 }}>
+              <Text style={[styles.name, unread && styles.nameBold]} numberOfLines={1}>{name}</Text>
+              {item.bookingId.startsWith('inq_') && (
+                 <View style={{ backgroundColor: Colors.primaryLight, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 }}>
+                    <Text style={{ fontSize: 10, color: Colors.white, fontWeight: '600' }}>Inquiry</Text>
+                 </View>
+              )}
+            </View>
             <Text style={styles.time}>{time}</Text>
           </View>
           <View style={styles.bottomRow}>
@@ -79,7 +104,7 @@ export default function ChatListScreen() {
           <View style={styles.empty}>
             <Ionicons name="chatbubbles-outline" size={56} color={Colors.textMuted} />
             <Text style={styles.emptyTitle}>No messages yet</Text>
-            <Text style={styles.emptyText}>Chat threads appear here once a booking is accepted</Text>
+            <Text style={styles.emptyText}>Chat threads appear here when you have inquiries or accepted bookings</Text>
           </View>
         }
         showsVerticalScrollIndicator={false}

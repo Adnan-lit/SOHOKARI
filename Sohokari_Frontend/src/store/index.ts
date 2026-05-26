@@ -1,7 +1,7 @@
-export { default as client, saveToken, clearToken, getToken } from './client';
-export { authApi }          from './auth';
-export { providersApi }     from './providers';
-export { bookingsApi }      from './bookings';
-export { reviewsApi }       from './reviews';
-export { chatApi, notificationsApi } from './chat';
-export { aiApi }            from './ai';
+export { default as client, saveToken, clearToken, getToken } from '@api/client';
+export { authApi }          from '@api/auth';
+export { providersApi }     from '@api/providers';
+export { bookingsApi }      from '@api/bookings';
+export { reviewsApi }       from '@api/reviews';
+export { chatApi, notificationsApi } from '@api/chat';
+export { aiApi }            from '@api/ai';

@@ -1,16 +1,18 @@
 export const Colors = {
-  primary:     '#1B3A5C',
-  primaryLight:'#2A5298',
-  accent:      '#1D9E75',
-  accentLight: '#5DCAA5',
+  // Premium Deep Blue-Grey Primary
+  primary:     '#0F172A',
+  primaryLight:'#1E293B',
+  // Vibrant Emerald Green for accents/CTAs
+  accent:      '#10B981',
+  accentLight: '#34D399',
 
-  background:  '#F4F7FB',
+  background:  '#F8FAFC',
   surface:     '#FFFFFF',
-  border:      '#C5CDD8',
+  border:      '#E2E8F0',
 
-  text:          '#1A1A2E',
-  textSecondary: '#6B7280',
-  textMuted:     '#9CA3AF',
+  text:          '#0F172A',
+  textSecondary: '#475569',
+  textMuted:     '#94A3B8',
 
   success: '#1D9E75',
   warning: '#EF9F27',

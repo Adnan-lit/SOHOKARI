@@ -12,6 +12,7 @@ import Constants from 'expo-constants';
 const ROLE_KEY = 'sohokari_role';
 const NAME_KEY = 'sohokari_name';
 const EMAIL_KEY = 'sohokari_email';
+const USERID_KEY = 'sohokari_userId';
 
 const isWeb = Platform.OS === 'web';
 const storeStr  = (k: string, v: string) => isWeb ? AsyncStorage.setItem(k, v) : SecureStore.setItemAsync(k, v);
@@ -52,25 +53,30 @@ const persistMeta = async (res: AuthRes) => {
     storeStr(ROLE_KEY,  res.data.role  ?? ''),
     storeStr(NAME_KEY,  res.data.name  ?? ''),
     storeStr(EMAIL_KEY, res.data.email ?? ''),
+    storeStr(USERID_KEY, res.data.userId ?? ''),
   ]);
 };
 
 const registerFcm = async () => {
   try {
     if (Constants.appOwnership === 'expo') {
-      console.warn('Skipping FCM registration: Not supported in Expo Go');
-      return;
+      console.log('Running in Expo Go, attempting Expo Push Token registration');
     }
     const Notifications = await import('expo-notifications').catch(() => null);
     if (!Notifications) return;
     const { status } = await Notifications.requestPermissionsAsync();
     if (status !== 'granted') return;
-    const tokenData = await Notifications.getDevicePushTokenAsync();
+    
+    // Get Expo push token instead of native device token
+    const tokenData = await Notifications.getExpoPushTokenAsync({
+      projectId: Constants.expoConfig?.extra?.eas?.projectId ?? '590e266c-f90d-478a-ae47-2d44db3351cc',
+    });
+    
     if (tokenData && tokenData.data) {
       await notificationsApi.registerFcmToken(tokenData.data);
     }
   } catch (e) {
-    console.warn('Failed to register FCM token:', e);
+    console.warn('Failed to register Expo push token:', e);
   }
 };
 
@@ -109,7 +115,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: async () => {
-    await Promise.all([clearToken(), clearRefresh(), deleteStr(ROLE_KEY), deleteStr(NAME_KEY), deleteStr(EMAIL_KEY)]);
+    await Promise.all([clearToken(), clearRefresh(), deleteStr(ROLE_KEY), deleteStr(NAME_KEY), deleteStr(EMAIL_KEY), deleteStr(USERID_KEY)]);
     set({ token: null, userId: null, name: null, email: null, role: null, isLoggedIn: false });
   },
 
@@ -123,10 +129,11 @@ export const useAuthStore = create<AuthState>((set) => ({
         return;
       }
       // Load persisted meta (name, email, role) stored at login time
-      const [role, name, email] = await Promise.all([
+      const [role, name, email, userId] = await Promise.all([
         loadStr(ROLE_KEY),
         loadStr(NAME_KEY),
         loadStr(EMAIL_KEY),
+        loadStr(USERID_KEY),
       ]);
       set({
         token,
@@ -134,8 +141,10 @@ export const useAuthStore = create<AuthState>((set) => ({
         email:  email  || sub,          // sub is email in JWT
         name:   name   || null,
         role:   (role  || jwtRole || null) as UserRole | null,
-        userId: null,                   // not in JWT; resolved on first API call
+        userId: userId || null,
       });
+      // Important: Register push token on app start
+      registerFcm();
     } catch {
       await clearToken();
     }

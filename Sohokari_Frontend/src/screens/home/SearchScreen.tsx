@@ -74,7 +74,7 @@ export default function SearchScreen() {
   });
 
   const clearFilters = () => { setFilters(EMPTY); setApplied(EMPTY); };
-  const hasActive = applied.category || applied.minRating || applied.maxPrice || applied.available || applied.sortBy;
+  const hasActive = Boolean(applied.category || applied.minRating || applied.maxPrice || applied.available || applied.sortBy);
 
   return (
     <View style={styles.container}>

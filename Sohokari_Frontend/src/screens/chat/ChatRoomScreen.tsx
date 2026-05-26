@@ -15,6 +15,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import dayjs from "dayjs";
 import { Client } from "@stomp/stompjs";
+import { SafeAreaView } from "react-native-safe-area-context";
+import * as Notifications from "expo-notifications";
 import { chatApi } from "@api/chat";
 import { getToken } from "@api/client";
 import { useAuthStore } from "@store/authStore";
@@ -37,15 +39,27 @@ export default function ChatRoomScreen() {
   const [connected, setConnected] = useState(false);
   const [sending, setSending] = useState(false);
 
-  // Load existing messages
+  // Load existing messages (poll every 3s on web since WS is skipped)
   const { isLoading, data: initialMessages } = useQuery({
     queryKey: ["messages", params.bookingId],
     queryFn: () => chatApi.getMessages(params.bookingId),
+    refetchInterval: Platform.OS === 'web' ? 3000 : false,
   });
 
   useEffect(() => {
     if (initialMessages) setMessages(initialMessages);
   }, [initialMessages]);
+
+  // Listen for foreground push notifications to trigger chat reload
+  useEffect(() => {
+    const subscription = Notifications.addNotificationReceivedListener((notification) => {
+      const data = notification.request.content.data;
+      if (data?.type === "NEW_MESSAGE" && data?.bookingId === params.bookingId) {
+        qc.invalidateQueries({ queryKey: ["messages", params.bookingId] });
+      }
+    });
+    return () => subscription.remove();
+  }, [params.bookingId, qc]);
 
   // WebSocket connection
   useEffect(() => {
@@ -60,6 +74,11 @@ export default function ChatRoomScreen() {
         brokerURL: WS_URL,
         connectHeaders: { Authorization: `Bearer ${token}` },
         reconnectDelay: 5000,
+        forceBinaryWSFrames: true,
+        appendMissingNULLonIncoming: true,
+        debug: (str) => console.log('STOMP DEBUG:', str),
+        onWebSocketError: (evt) => console.error('STOMP WS ERROR:', evt),
+        onStompError: (frame) => console.error('STOMP ERROR FRAME:', frame.headers['message'], frame.body),
         onConnect: () => {
           setConnected(true);
           client.subscribe(`/user/queue/messages`, (frame) => {
@@ -114,6 +133,8 @@ export default function ChatRoomScreen() {
           content: text,
           messageType: "TEXT",
           sentAt: new Date().toISOString(),
+          senderName: "Me",
+          read: true,
         };
         setMessages((prev) => [...prev, optimistic]);
       } else {
@@ -201,31 +222,33 @@ export default function ChatRoomScreen() {
       )}
 
       {/* Input row */}
-      <View style={styles.inputRow}>
-        <TextInput
-          style={styles.input}
-          value={input}
-          onChangeText={setInput}
-          placeholder="Type a message…"
-          placeholderTextColor={Colors.textMuted}
-          multiline
-          maxLength={500}
-        />
-        <TouchableOpacity
-          style={[
-            styles.sendBtn,
-            (!input.trim() || sending) && styles.sendBtnDisabled,
-          ]}
-          onPress={sendMessage}
-          disabled={!input.trim() || sending}
-        >
-          {sending ? (
-            <ActivityIndicator size="small" color={Colors.white} />
-          ) : (
-            <Ionicons name="send" size={20} color={Colors.white} />
-          )}
-        </TouchableOpacity>
-      </View>
+      <SafeAreaView edges={["bottom"]} style={styles.inputSafeArea}>
+        <View style={styles.inputRow}>
+          <TextInput
+            style={styles.input}
+            value={input}
+            onChangeText={setInput}
+            placeholder="Type a message…"
+            placeholderTextColor={Colors.textMuted}
+            multiline
+            maxLength={500}
+          />
+          <TouchableOpacity
+            style={[
+              styles.sendBtn,
+              (!input.trim() || sending) && styles.sendBtnDisabled,
+            ]}
+            onPress={sendMessage}
+            disabled={!input.trim() || sending}
+          >
+            {sending ? (
+              <ActivityIndicator size="small" color={Colors.white} />
+            ) : (
+              <Ionicons name="send" size={20} color={Colors.white} />
+            )}
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 }
@@ -291,13 +314,16 @@ const styles = StyleSheet.create({
   },
   bubbleTimeMe: { color: "rgba(255,255,255,0.6)" },
 
+  inputSafeArea: {
+    backgroundColor: Colors.surface,
+    borderTopWidth: 0.5,
+    borderTopColor: Colors.border,
+  },
   inputRow: {
     flexDirection: "row",
     gap: 10,
     padding: 12,
     backgroundColor: Colors.surface,
-    borderTopWidth: 0.5,
-    borderTopColor: Colors.border,
     alignItems: "flex-end",
   },
   input: {

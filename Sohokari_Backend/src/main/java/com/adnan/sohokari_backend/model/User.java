@@ -37,6 +37,9 @@ public class User {
     // FCM token for push notifications
     private String fcmToken;
 
+    // Expo push token for notifications
+    private String expoPushToken;
+
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private LocalDateTime updatedAt = LocalDateTime.now();

@@ -18,4 +18,7 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessage, Stri
 
     // All conversations for a user (as sender or receiver)
     List<ChatMessage> findByBookingIdInOrderBySentAtDesc(List<String> bookingIds);
+
+    @org.springframework.data.mongodb.repository.Query("{ '$or': [ { 'senderId': ?0 }, { 'receiverId': ?0 } ], 'bookingId': { $regex: '^inq_' } }")
+    List<ChatMessage> findInquiriesByUser(String userId);
 }

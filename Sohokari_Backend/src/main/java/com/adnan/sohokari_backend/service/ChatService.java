@@ -23,6 +23,7 @@ public class ChatService {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final FcmService fcmService;
+    private final ExpoPushService expoPushService;
     private final SimpMessagingTemplate messagingTemplate;
 
     // ── Send message ──────────────────────────────────────────────────────
@@ -34,14 +35,23 @@ public class ChatService {
                 .orElseThrow(() -> new RuntimeException("Sender not found"));
 
         // Validate booking exists and sender is part of it
-        Booking booking = bookingRepository.findById(req.getBookingId())
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
+        boolean isCustomer = false;
+        boolean isProvider = false;
 
-        boolean isCustomer = booking.getCustomerId().equals(sender.getId());
-        boolean isProvider = booking.getProviderUserId().equals(sender.getId());
+        if (req.getBookingId().startsWith("inq_")) {
+            String[] parts = req.getBookingId().split("_");
+            if (parts.length == 3 && (parts[1].equals(sender.getId()) || parts[2].equals(sender.getId()))) {
+                isCustomer = true; // Authorized
+            }
+        } else {
+            Booking booking = bookingRepository.findById(req.getBookingId())
+                    .orElseThrow(() -> new RuntimeException("Booking not found"));
+            isCustomer = booking.getCustomerId().equals(sender.getId());
+            isProvider = booking.getProviderUserId().equals(sender.getId());
+        }
 
         if (!isCustomer && !isProvider) {
-            throw new RuntimeException("Not authorized to chat in this booking");
+            throw new RuntimeException("Not authorized to chat in this booking/inquiry");
         }
 
         // Save message
@@ -56,21 +66,37 @@ public class ChatService {
         ChatMessageResponse response = mapToResponse(msg, sender.getName());
 
         // ── Deliver via WebSocket (if receiver is online) ─────────────────
-        messagingTemplate.convertAndSendToUser(
-                req.getReceiverId(),          // destination user
-                "/queue/messages",            // channel
-                response
-        );
+        User receiver = userRepository.findById(req.getReceiverId()).orElse(null);
+        if (receiver != null) {
+            messagingTemplate.convertAndSendToUser(
+                    receiver.getEmail(),          // destination user (Principal name is email)
+                    "/queue/messages",            // channel
+                    response
+            );
+        }
 
         // ── Push notification (for offline users) ─────────────────────────
-        fcmService.sendNotification(
-                req.getReceiverId(),
-                "New message from " + sender.getName(),
-                req.getContent().length() > 50
-                        ? req.getContent().substring(0, 50) + "..." : req.getContent(),
-                Notification.NotificationType.NEW_MESSAGE,
-                req.getBookingId()
-        );
+        String title = "New message from " + sender.getName();
+        String body = req.getContent().length() > 50
+                ? req.getContent().substring(0, 50) + "..." : req.getContent();
+
+        if (receiver != null && receiver.getExpoPushToken() != null) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("type", Notification.NotificationType.NEW_MESSAGE.name());
+            data.put("bookingId", req.getBookingId());
+            data.put("senderId", sender.getId());
+            data.put("senderName", sender.getName());
+            
+            expoPushService.sendPushNotification(receiver.getExpoPushToken(), title, body, data);
+        } else {
+            fcmService.sendNotification(
+                    req.getReceiverId(),
+                    title,
+                    body,
+                    Notification.NotificationType.NEW_MESSAGE,
+                    req.getBookingId()
+            );
+        }
 
         return response;
     }
@@ -83,12 +109,22 @@ public class ChatService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
-
         // Authorization check
-        boolean isCustomer = booking.getCustomerId().equals(user.getId());
-        boolean isProvider = booking.getProviderUserId().equals(user.getId());
+        boolean isCustomer = false;
+        boolean isProvider = false;
+
+        if (bookingId.startsWith("inq_")) {
+            String[] parts = bookingId.split("_");
+            if (parts.length == 3 && (parts[1].equals(user.getId()) || parts[2].equals(user.getId()))) {
+                isCustomer = true;
+            }
+        } else {
+            Booking booking = bookingRepository.findById(bookingId)
+                    .orElseThrow(() -> new RuntimeException("Booking not found"));
+            isCustomer = booking.getCustomerId().equals(user.getId());
+            isProvider = booking.getProviderUserId().equals(user.getId());
+        }
+
         if (!isCustomer && !isProvider) {
             throw new RuntimeException("Not authorized");
         }
@@ -168,6 +204,40 @@ public class ChatService {
 
             conversations.add(conv);
         }
+
+        // Add inquiry conversations
+        List<ChatMessage> inquiryMessages = chatMessageRepository.findInquiriesByUser(user.getId());
+        Map<String, ChatMessage> latestInquiryMessages = new HashMap<>();
+        for (ChatMessage msg : inquiryMessages) {
+            ChatMessage current = latestInquiryMessages.get(msg.getBookingId());
+            if (current == null || msg.getSentAt().isAfter(current.getSentAt())) {
+                latestInquiryMessages.put(msg.getBookingId(), msg);
+            }
+        }
+
+        for (ChatMessage last : latestInquiryMessages.values()) {
+            String[] parts = last.getBookingId().split("_");
+            if (parts.length == 3) {
+                String otherUserId = user.getId().equals(parts[1]) ? parts[2] : parts[1];
+                User otherUser = userRepository.findById(otherUserId).orElse(null);
+                
+                long unread = chatMessageRepository.countByReceiverIdAndIsReadFalse(user.getId());
+                
+                ConversationResponse conv = new ConversationResponse();
+                conv.setBookingId(last.getBookingId());
+                conv.setOtherUserId(otherUserId);
+                conv.setOtherUserName(otherUser != null ? otherUser.getName() : "Unknown");
+                conv.setOtherUserPhoto(otherUser != null ? otherUser.getProfilePhoto() : null);
+                conv.setLastMessage(last.getContent());
+                conv.setLastMessageAt(last.getSentAt());
+                conv.setUnreadCount(unread);
+                
+                conversations.add(conv);
+            }
+        }
+
+        // Sort by lastMessageAt descending
+        conversations.sort((a, b) -> b.getLastMessageAt().compareTo(a.getLastMessageAt()));
 
         return conversations;
     }

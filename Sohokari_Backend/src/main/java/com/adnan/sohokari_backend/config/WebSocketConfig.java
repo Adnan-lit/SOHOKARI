@@ -36,9 +36,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // Standard WebSocket endpoint for React Native (@stomp/stompjs uses raw WS by default)
+        registry.addEndpoint("/ws")
+                .setAllowedOriginPatterns("*");
+
+        // SockJS fallback (optional)
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*")
-                .withSockJS();  // fallback for React Native
+                .withSockJS();
     }
 
     // Authenticate WebSocket connections using JWT

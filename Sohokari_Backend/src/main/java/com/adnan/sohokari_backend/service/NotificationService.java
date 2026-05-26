@@ -58,7 +58,11 @@ public class NotificationService {
     public void registerFcmToken(String email, String token) {
         var user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setFcmToken(token);
+        if (token != null && token.startsWith("ExponentPushToken")) {
+            user.setExpoPushToken(token);
+        } else {
+            user.setFcmToken(token);
+        }
         userRepository.save(user);
     }
 }

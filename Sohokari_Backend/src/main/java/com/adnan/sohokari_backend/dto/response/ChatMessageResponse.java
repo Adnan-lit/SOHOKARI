@@ -1,6 +1,4 @@
 package com.adnan.sohokari_backend.dto.response;
-
-
 import com.adnan.sohokari_backend.model.ChatMessage;
 import lombok.Data;
 

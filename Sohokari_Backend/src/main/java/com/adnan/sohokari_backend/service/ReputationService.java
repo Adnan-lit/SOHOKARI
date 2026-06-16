@@ -1,6 +1,6 @@
 package com.adnan.sohokari_backend.service;
 
-
+import com.adnan.sohokari_backend.exception.BadRequestException;
 import com.adnan.sohokari_backend.dto.response.ReputationResponse;
 import com.adnan.sohokari_backend.model.*;
 import com.adnan.sohokari_backend.repository.*;
@@ -191,7 +191,7 @@ public class ReputationService {
 
     public ReputationResponse getReputation(String providerId) {
         Provider provider = providerRepository.findById(providerId)
-                .orElseThrow(() -> new RuntimeException("Provider not found"));
+                .orElseThrow(() -> new BadRequestException("Provider not found"));
 
         long completed = bookingRepository.countByProviderIdAndStatus(
                 providerId, BookingStatus.COMPLETED);

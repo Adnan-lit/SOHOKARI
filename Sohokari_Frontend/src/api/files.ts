@@ -11,7 +11,7 @@ export const filesApi = {
       uri: Platform.OS === 'ios' ? fileUri.replace('file://', '') : fileUri,
       name: filename,
       type: mimeType,
-    } as any);
+    } as unknown as Blob);
 
     const response = await apiClient.post<{ success: boolean; data: { url: string } }>('/files/upload', formData, {
       headers: {

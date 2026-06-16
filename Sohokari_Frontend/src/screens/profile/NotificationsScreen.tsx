@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 import React, { useEffect } from 'react';
 import {
   View, Text, StyleSheet, FlatList,
@@ -88,7 +89,7 @@ export default function NotificationsScreen() {
         activeOpacity={0.8}
       >
         <View style={[styles.iconWrap, { backgroundColor: color + '20' }]}>
-          <Ionicons name={icon as any} size={22} color={color} />
+          <Ionicons name={icon as ComponentProps<typeof Ionicons>["name"]} size={22} color={color} />
         </View>
         <View style={styles.content}>
           <Text style={[styles.title, !item.read && styles.titleUnread]}>{item.title}</Text>

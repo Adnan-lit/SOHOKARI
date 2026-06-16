@@ -9,8 +9,7 @@ tags:
 # Precondition: User is logged in as customer
 # ══════════════════════════════════════════════════════════════
 
-- clearState
-- launchApp
+- openLink: "exp+sohokari://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
 - waitForAnimationToEnd
 
 # Login
@@ -46,7 +45,7 @@ tags:
 - tapOn:
     text: "Enter your name"
     optional: true
-- clearText
+- eraseText: 50
 - inputText: "Updated Name"
 - takeScreenshot: screenshots/33_edit_profile_filled
 

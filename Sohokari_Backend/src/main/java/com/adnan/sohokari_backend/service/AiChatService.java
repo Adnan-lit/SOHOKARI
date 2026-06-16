@@ -1,5 +1,7 @@
 package com.adnan.sohokari_backend.service;
 
+import com.adnan.sohokari_backend.exception.BadRequestException;
+
 import com.adnan.sohokari_backend.dto.request.AiChatRequest;
 import com.adnan.sohokari_backend.dto.request.SmartMatchRequest;
 import com.adnan.sohokari_backend.dto.response.AiChatResponse;
@@ -35,7 +37,7 @@ public class AiChatService {
     public AiChatResponse chat(String userEmail, AiChatRequest req) {
 
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         // ── Session ───────────────────────────────────────────────────────
         String sessionId = req.getSessionId() != null
@@ -126,7 +128,7 @@ public class AiChatService {
 
     public void clearHistory(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
         sessionRepository.deleteByUserId(user.getId());
     }
 

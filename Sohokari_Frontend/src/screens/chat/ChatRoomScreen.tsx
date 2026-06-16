@@ -6,9 +6,11 @@ import {
   FlatList,
   TextInput,
   TouchableOpacity,
+  Pressable,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useRoute, RouteProp } from "@react-navigation/native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -168,6 +170,40 @@ export default function ChatRoomScreen() {
     }
   }, [input, sending, params.bookingId, userId]);
 
+  // ── Delete a message ──────────────────────────────────────────────────
+  const doDelete = useCallback(async (messageId: string) => {
+    try {
+      await chatApi.deleteMessage(messageId);
+      setMessages(prev => prev.filter(m => m.messageId !== messageId));
+    } catch {
+      if (Platform.OS === 'web') {
+        window.alert('Failed to delete message');
+      } else {
+        Alert.alert('Error', 'Failed to delete message');
+      }
+    }
+  }, []);
+
+  const handleDeleteMessage = useCallback((msg: ChatMessageResponse) => {
+    if (msg.senderId !== userId) return;
+    if (msg.messageId.startsWith('tmp-')) return;
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Delete this message?')) {
+        doDelete(msg.messageId);
+      }
+    } else {
+      Alert.alert(
+        'Delete Message',
+        'Are you sure you want to delete this message?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Delete', style: 'destructive', onPress: () => doDelete(msg.messageId) },
+        ],
+      );
+    }
+  }, [userId, doDelete]);
+
   const renderMessage = ({ item }: { item: ChatMessageResponse }) => {
     const isMe = item.senderId === userId;
     const msgDate = dayjs(item.sentAt).format('DD MMM YYYY');
@@ -186,8 +222,15 @@ export default function ChatRoomScreen() {
             </View>
           </View>
         )}
-        <View
-          style={[styles.msgRow, isMe ? styles.msgRowRight : styles.msgRowLeft]}
+        <Pressable
+          onLongPress={() => handleDeleteMessage(item)}
+          delayLongPress={500}
+          disabled={item.senderId !== userId}
+          style={({ pressed }) => [
+            styles.msgRow,
+            isMe ? styles.msgRowRight : styles.msgRowLeft,
+            pressed && isMe && { opacity: 0.7 },
+          ]}
         >
           {!isMe && (
             <View style={styles.msgAvatar}>
@@ -216,7 +259,7 @@ export default function ChatRoomScreen() {
               )}
             </View>
           </View>
-        </View>
+        </Pressable>
       </>
     );
   };

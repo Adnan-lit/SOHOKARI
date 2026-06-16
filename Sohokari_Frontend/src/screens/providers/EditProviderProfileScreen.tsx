@@ -11,7 +11,7 @@ import Button from '@components/common/Button';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { Image, TouchableOpacity, Text } from 'react-native';
-import type { RootStackParamList } from '@app-types/navigation.types';
+import type { RootStackParamList, RootNavProp } from '@app-types/navigation.types';
 import type { PaymentMethod } from '@api/payments';
 
 const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; color: string }[] = [
@@ -22,7 +22,7 @@ const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; color: string }[] 
 ];
 
 export default function EditProviderProfileScreen() {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<RootNavProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'EditProviderProfile'>>();
   const qc = useQueryClient();
 
@@ -58,8 +58,8 @@ export default function EditProviderProfileScreen() {
       if (profile.longitude) setLongitude(profile.longitude);
       setProfilePhoto(profile.profilePhoto || null);
       setPortfolio(profile.portfolio || []);
-      setAcceptedPaymentMethods((profile as any).acceptedPaymentMethods || []);
-      setPaymentMobileNumber((profile as any).paymentMobileNumber || '');
+      setAcceptedPaymentMethods((profile as Record<string, unknown>).acceptedPaymentMethods as PaymentMethod[] || []);
+      setPaymentMobileNumber((profile as Record<string, unknown>).paymentMobileNumber as string || '');
     }
   }, [profile]);
 
@@ -92,8 +92,8 @@ export default function EditProviderProfileScreen() {
       setLatitude(loc.coords.latitude);
       setLongitude(loc.coords.longitude);
       Toast.show({ type: 'success', text1: 'Location Updated', text2: 'Location set via GPS' });
-    } catch (e: any) {
-      Toast.show({ type: 'error', text1: 'Location Error', text2: e.message });
+    } catch (e: unknown) {
+      Toast.show({ type: 'error', text1: 'Location Error', text2: e instanceof Error ? e.message : "Location error" });
     }
   };
 
@@ -114,8 +114,9 @@ export default function EditProviderProfileScreen() {
         } else {
           setPortfolio(prev => [...prev, url]);
         }
-      } catch (err: any) {
-        Toast.show({ type: 'error', text1: 'Upload Failed', text2: err.message });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Upload failed';
+        Toast.show({ type: 'error', text1: 'Upload Failed', text2: message });
       } finally {
         setUploading(false);
       }
@@ -144,7 +145,7 @@ export default function EditProviderProfileScreen() {
       });
       navigation.goBack();
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       Toast.show({
         type: 'error',
         text1: 'Update Failed',

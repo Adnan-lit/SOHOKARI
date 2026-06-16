@@ -40,7 +40,7 @@ export default function CustomerProfileScreen() {
     onSuccess: () => {
       Toast.show({ type: 'success', text1: 'Location Updated', text2: 'Your default location has been saved.' });
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       Toast.show({ type: 'error', text1: 'Location Error', text2: err.message });
     }
   });
@@ -66,8 +66,8 @@ export default function CustomerProfileScreen() {
               if (status !== 'granted') throw new Error('Permission denied');
               const loc = await Location.getCurrentPositionAsync({});
               locationMutation.mutate({ lat: loc.coords.latitude, lng: loc.coords.longitude });
-            } catch (e: any) {
-              Toast.show({ type: 'error', text1: 'Error', text2: e.message });
+            } catch (e: unknown) {
+              Toast.show({ type: 'error', text1: 'Error', text2: e instanceof Error ? e.message : "Unknown error" });
             }
           }
         },
@@ -101,7 +101,7 @@ export default function CustomerProfileScreen() {
     { icon: 'chatbubbles-outline',   label: 'Messages',         onPress: () => navigation.navigate('Chat') },
     { icon: 'notifications-outline', label: 'Notifications',    onPress: () => navigation.navigate('Notifications') },
     { icon: 'location-outline',      label: 'Update My Location', onPress: handleUpdateLocation },
-    ...(role === 'ADMIN' ? [{ icon: 'shield-checkmark-outline' as const, label: 'Admin Dashboard', onPress: () => navigation.navigate('AdminDashboard' as any) }] : []),
+    ...(role === 'ADMIN' ? [{ icon: 'shield-checkmark-outline' as const, label: 'Admin Dashboard', onPress: () => navigation.navigate('AdminDashboard') }] : []),
     { icon: 'help-circle-outline',   label: 'Help & Support',   onPress: () => {} },
     { icon: 'document-text-outline', label: 'Terms of Service', onPress: () => {} },
     { icon: 'language-outline',      label: locale === 'en' ? 'বাংলা ভাষায় পরিবর্তন' : 'Switch to English', onPress: () => setLocale(locale === 'en' ? 'bn' : 'en') },

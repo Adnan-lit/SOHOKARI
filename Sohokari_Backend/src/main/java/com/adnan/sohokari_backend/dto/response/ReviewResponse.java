@@ -1,6 +1,4 @@
 package com.adnan.sohokari_backend.dto.response;
-
-
 import lombok.Data;
 import java.time.LocalDateTime;
 

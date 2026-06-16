@@ -1,5 +1,7 @@
 package com.adnan.sohokari_backend.service;
 
+import com.adnan.sohokari_backend.exception.BadRequestException;
+
 import com.adnan.sohokari_backend.dto.request.CreateReviewRequest;
 import com.adnan.sohokari_backend.dto.response.ReviewResponse;
 import com.adnan.sohokari_backend.model.*;
@@ -28,31 +30,31 @@ public class ReviewService {
                                        CreateReviewRequest req) {
 
         User customer = userRepository.findByEmail(customerEmail)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new BadRequestException("Customer not found"));
 
         // ── Verification gate ─────────────────────────────────────────────
 
 // 1. Booking must exist
         Booking booking = bookingRepository.findById(req.getBookingId())
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
+                .orElseThrow(() -> new BadRequestException("Booking not found"));
 
 // 2. Must be THIS customer's booking — not someone else's
         if (!booking.getCustomerId().equals(customer.getId())) {
-            throw new RuntimeException(
+            throw new BadRequestException(
                     "You did not make this booking");
         }
 
 // 3. Booking must be COMPLETED — not just any status
         if (booking.getStatus() != BookingStatus.COMPLETED
                 && booking.getStatus() != BookingStatus.REVIEWED) {
-            throw new RuntimeException(
+            throw new BadRequestException(
                     "You can only review after the service is completed. " +
                             "Current status: " + booking.getStatus());
         }
 
 // 4. One review per booking — cannot review the same service twice
         if (reviewRepository.existsByBookingId(req.getBookingId())) {
-            throw new RuntimeException(
+            throw new BadRequestException(
                     "You have already submitted a review for this booking");
         }
 
@@ -63,7 +65,7 @@ public class ReviewService {
                         customer.getId(), booking.getProviderId());
 
         if (completedWithProvider.isEmpty()) {
-            throw new RuntimeException(
+            throw new BadRequestException(
                     "You can only review a provider after completing a service with them");
         }
 
@@ -139,13 +141,13 @@ public class ReviewService {
 
     public void deleteReview(String customerEmail, String reviewId) {
         User customer = userRepository.findByEmail(customerEmail)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new BadRequestException("Customer not found"));
 
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new RuntimeException("Review not found"));
+                .orElseThrow(() -> new BadRequestException("Review not found"));
 
         if (!review.getCustomerId().equals(customer.getId())) {
-            throw new RuntimeException("Not authorized to delete this review");
+            throw new BadRequestException("Not authorized to delete this review");
         }
 
         String providerId = review.getProviderId();

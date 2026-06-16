@@ -18,7 +18,7 @@ interface Props {
 export default function ImageGallery({ images, initialIndex = 0, visible, onClose }: Props) {
   const [current, setCurrent] = useState(initialIndex);
 
-  const onScroll = (e: any) => {
+  const onScroll = (e: { nativeEvent: { contentOffset: { x: number }; layoutMeasurement: { width: number } } }) => {
     const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W);
     setCurrent(idx);
   };

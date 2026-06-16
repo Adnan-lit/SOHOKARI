@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 import React from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
@@ -41,7 +42,7 @@ export default function ProviderDashboardScreen() {
       qc.invalidateQueries({ queryKey: ['myProviderProfile'] });
       Toast.show({ type: 'success', text1: isNowAvailable ? 'You are now Available' : 'You are now Busy' });
     },
-    onError: (e: any) => Toast.show({ type: 'error', text1: e.message }),
+    onError: (e: Error) => Toast.show({ type: 'error', text1: e.message }),
   });
 
   const stats = {
@@ -122,7 +123,7 @@ export default function ProviderDashboardScreen() {
       {provider?.verificationStatus !== 'APPROVED' && (
         <TouchableOpacity 
           style={[styles.verificationBanner, provider?.verificationStatus === 'REJECTED' && { backgroundColor: Colors.error }]}
-          onPress={() => provider?.verificationStatus !== 'PENDING_REVIEW' && navigation.navigate('Verification' as any)}
+          onPress={() => provider?.verificationStatus !== 'PENDING_REVIEW' && navigation.navigate('Verification')}
         >
           <Ionicons 
             name={provider?.verificationStatus === 'PENDING_REVIEW' ? 'time' : 'alert-circle'} 
@@ -216,7 +217,7 @@ export default function ProviderDashboardScreen() {
           ].map(({ icon, label, onPress }) => (
             <TouchableOpacity key={label} style={styles.actionBtn} onPress={onPress}>
               <View style={styles.actionIcon}>
-                <Ionicons name={icon as any} size={22} color={Colors.primary} />
+                <Ionicons name={icon as ComponentProps<typeof Ionicons>["name"]} size={22} color={Colors.primary} />
               </View>
               <Text style={styles.actionLabel}>{label}</Text>
             </TouchableOpacity>

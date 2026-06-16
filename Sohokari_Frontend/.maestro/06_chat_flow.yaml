@@ -8,8 +8,7 @@ tags:
 # TEST: Chat / Messaging Flow
 # ══════════════════════════════════════════════════════════════
 
-- clearState
-- launchApp
+- openLink: "exp+sohokari://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
 - waitForAnimationToEnd
 
 # Login

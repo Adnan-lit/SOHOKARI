@@ -1,6 +1,4 @@
 package com.adnan.sohokari_backend.model;
-
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;

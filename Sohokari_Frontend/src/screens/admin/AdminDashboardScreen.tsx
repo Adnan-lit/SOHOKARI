@@ -15,8 +15,8 @@ export default function AdminDashboardScreen() {
     try {
       const data = await adminApi.getPendingVerifications();
       setProviders(data);
-    } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to fetch verifications');
+    } catch (e: unknown) {
+      Alert.alert('Error', e instanceof Error ? e.message : "Failed to fetch verifications");
     } finally {
       setLoading(false);
     }
@@ -36,8 +36,8 @@ export default function AdminDashboardScreen() {
       setSelectedProvider(null);
       fetchPending();
       Alert.alert('Success', `Provider ${action}d successfully`);
-    } catch (e: any) {
-      Alert.alert('Error', e.message || `Failed to ${action} provider`);
+    } catch (e: unknown) {
+      Alert.alert('Error', e instanceof Error ? e.message : `Failed to ${action} provider`);
     }
   };
 

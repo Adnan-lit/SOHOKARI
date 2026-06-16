@@ -1,5 +1,7 @@
 package com.adnan.sohokari_backend.service;
 
+import com.adnan.sohokari_backend.exception.BadRequestException;
+
 import com.adnan.sohokari_backend.dto.response.ProviderProfileResponse;
 import com.adnan.sohokari_backend.model.Provider;
 import com.adnan.sohokari_backend.model.User;
@@ -24,14 +26,14 @@ public class AdminService {
         List<Provider> pendingProviders = providerRepository.findByVerificationStatus(VerificationStatus.PENDING_REVIEW);
         return pendingProviders.stream().map(provider -> {
             User user = userRepository.findById(provider.getUserId())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new BadRequestException("User not found"));
             return providerService.mapToFullProfile(user, provider);
         }).collect(Collectors.toList());
     }
 
     public ProviderProfileResponse verifyProvider(String providerId, boolean approve) {
         Provider provider = providerRepository.findById(providerId)
-                .orElseThrow(() -> new RuntimeException("Provider not found"));
+                .orElseThrow(() -> new BadRequestException("Provider not found"));
 
         if (approve) {
             provider.setVerificationStatus(VerificationStatus.APPROVED);
@@ -48,7 +50,7 @@ public class AdminService {
         providerRepository.save(provider);
 
         User user = userRepository.findById(provider.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
         return providerService.mapToFullProfile(user, provider);
     }
 }

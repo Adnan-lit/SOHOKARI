@@ -1,6 +1,4 @@
 package com.adnan.sohokari_backend.service;
-
-
 import com.google.firebase.messaging.*;
 import com.adnan.sohokari_backend.model.Notification;
 import com.adnan.sohokari_backend.repository.NotificationRepository;

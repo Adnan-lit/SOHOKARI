@@ -53,8 +53,8 @@ export default function LoginScreen() {
         password: form.password,
       });
       // RootNavigator auto-redirects on isLoggedIn change
-    } catch (err: any) {
-      Toast.show({ type: "error", text1: "Login failed", text2: err.message });
+    } catch (err: unknown) {
+      Toast.show({ type: "error", text1: "Login failed", text2: err instanceof Error ? err.message : "Login failed" });
     }
   };
 

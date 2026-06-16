@@ -1,5 +1,7 @@
 package com.adnan.sohokari_backend.service;
 
+import com.adnan.sohokari_backend.exception.BadRequestException;
+
 import com.adnan.sohokari_backend.dto.request.UpdateLocationRequest;
 import com.adnan.sohokari_backend.dto.request.UpdateProfileRequest;
 import com.adnan.sohokari_backend.model.User;
@@ -19,7 +21,7 @@ public class UserService {
 
     public Map<String, Double> updateLocation(String email, UpdateLocationRequest req) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         user.setLatitude(req.getLatitude());
         user.setLongitude(req.getLongitude());
@@ -35,7 +37,7 @@ public class UserService {
 
     public Map<String, Double> getLocation(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         Map<String, Double> location = new HashMap<>();
         location.put("latitude", user.getLatitude());
@@ -45,7 +47,7 @@ public class UserService {
 
     public User updateProfile(String email, UpdateProfileRequest req) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         if (req.getName() != null) user.setName(req.getName());
         if (req.getPhone() != null) user.setPhone(req.getPhone());

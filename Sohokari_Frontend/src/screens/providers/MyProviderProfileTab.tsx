@@ -82,20 +82,20 @@ export default function MyProviderProfileTab() {
       <View style={styles.section}>
         <Button
           title="Edit Profile"
-          onPress={() => navigation.navigate('EditProviderProfile' as any)}
+          onPress={() => navigation.navigate('EditProviderProfile')}
           style={{ marginBottom: 12 }}
           variant="outline"
         />
         <View style={styles.actionRow}>
           <Button
             title="Earnings"
-            onPress={() => navigation.navigate('Earnings' as any)}
+            onPress={() => navigation.navigate('Earnings')}
             style={{ flex: 1, marginRight: 6 }}
             variant="outline"
           />
           <Button
             title="Summary"
-            onPress={() => navigation.navigate('ActivitySummary' as any)}
+            onPress={() => navigation.navigate('ActivitySummary')}
             style={{ flex: 1, marginLeft: 6 }}
           />
         </View>

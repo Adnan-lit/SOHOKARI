@@ -1,6 +1,4 @@
 package com.adnan.sohokari_backend.controller;
-
-
 import com.adnan.sohokari_backend.dto.request.AiChatRequest;
 import com.adnan.sohokari_backend.dto.response.AiChatResponse;
 import com.adnan.sohokari_backend.dto.response.ApiResponse;

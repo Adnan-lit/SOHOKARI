@@ -8,8 +8,7 @@ tags:
 # TEST: Customer Registration Flow
 # ══════════════════════════════════════════════════════════════
 
-- clearState
-- launchApp
+- openLink: "exp+sohokari://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
 - waitForAnimationToEnd
 
 # Navigate to registration
@@ -47,7 +46,7 @@ tags:
 - takeScreenshot: screenshots/12_register_short_password
 
 # ── Test 3: Password mismatch ────────────────────────────
-- clearText
+- eraseText: 50
 - tapOn:
     text: "••••••••"
     index: 0

@@ -140,7 +140,7 @@ export default function CreateBookingScreen() {
         const addrParts = [place.name, place.street, place.city, place.region].filter(Boolean);
         set("address")(addrParts.join(", "));
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       Toast.show({ type: "error", text1: "Location Error", text2: "Could not fetch your location." });
     } finally {
       setIsLocating(false);
@@ -189,7 +189,7 @@ export default function CreateBookingScreen() {
       });
       navigation.replace("BookingDetail", { bookingId: booking.bookingId });
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       Toast.show({
         type: "error",
         text1: "Booking failed",
@@ -273,7 +273,7 @@ export default function CreateBookingScreen() {
               <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
                 <Calendar
                   minDate={new Date().toISOString().split('T')[0]}
-                  onDayPress={(day: any) => {
+                  onDayPress={(day: { dateString: string }) => {
                     set("scheduledDate")(day.dateString);
                     set("scheduledTime")(""); // Reset time on date change
                     setShowDatePicker(false);

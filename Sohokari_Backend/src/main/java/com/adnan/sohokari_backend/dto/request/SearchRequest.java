@@ -1,6 +1,4 @@
 package com.adnan.sohokari_backend.dto.request;
-
-
 import com.adnan.sohokari_backend.model.ServiceCategory;
 import lombok.Data;
 

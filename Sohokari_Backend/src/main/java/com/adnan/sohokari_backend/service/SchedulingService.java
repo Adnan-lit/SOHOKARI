@@ -1,5 +1,7 @@
 package com.adnan.sohokari_backend.service;
 
+import com.adnan.sohokari_backend.exception.BadRequestException;
+
 import com.adnan.sohokari_backend.dto.response.SchedulingSuggestionResponse;
 import com.adnan.sohokari_backend.dto.response.SchedulingSuggestionResponse.TimeSlot;
 import com.adnan.sohokari_backend.model.Booking;
@@ -35,7 +37,7 @@ public class SchedulingService {
     public SchedulingSuggestionResponse suggest(String providerId) {
 
         providerRepository.findById(providerId)
-                .orElseThrow(() -> new RuntimeException("Provider not found"));
+                .orElseThrow(() -> new BadRequestException("Provider not found"));
 
         // Get upcoming bookings for this provider (next 7 days)
         List<Booking> upcoming = bookingRepository

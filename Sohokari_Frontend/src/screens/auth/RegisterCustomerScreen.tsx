@@ -67,11 +67,11 @@ export default function RegisterCustomerScreen() {
         phone: form.phone.trim(),
         password: form.password,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       Toast.show({
         type: "error",
         text1: "Registration failed",
-        text2: err.message,
+        text2: err instanceof Error ? err.message : "Registration failed",
       });
     }
   };

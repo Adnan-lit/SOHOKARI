@@ -11,6 +11,7 @@ export type AuthResponse = {
     name:         string;
     role:         'CUSTOMER' | 'PROVIDER' | 'ADMIN';
     email:        string;
+    profilePhoto?: string;
   };
 };
 

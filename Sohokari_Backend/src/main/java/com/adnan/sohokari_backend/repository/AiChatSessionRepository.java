@@ -1,6 +1,4 @@
 package com.adnan.sohokari_backend.repository;
-
-
 import com.adnan.sohokari_backend.model.AiChatSession;
 import org.springframework.data.mongodb.repository.MongoRepository;
 

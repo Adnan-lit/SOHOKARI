@@ -7,14 +7,14 @@ import * as Location from 'expo-location';
 import { Colors } from '@theme/colors';
 import { DEFAULT_LOCATION } from '@constants/config';
 import Button from '@components/common/Button';
-import type { RootStackParamList } from '@app-types/navigation.types';
+import type { RootStackParamList, RootNavProp } from '@app-types/navigation.types';
 
 const { width, height } = Dimensions.get('window');
 
 type LocationPickerRouteProp = RouteProp<RootStackParamList, 'LocationPicker'>;
 
 export default function LocationPickerScreen() {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<RootNavProp>();
   const route = useRoute<LocationPickerRouteProp>();
   const { returnScreen, currentLat, currentLng } = route.params;
 
@@ -118,7 +118,7 @@ export default function LocationPickerScreen() {
   `;
 
   const handleConfirm = () => {
-    navigation.navigate(returnScreen, { pickedLocation: region });
+    navigation.navigate(returnScreen as keyof RootStackParamList, { pickedLocation: region } as never);
   };
 
   return (

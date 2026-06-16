@@ -58,7 +58,7 @@ export default function ReviewListScreen() {
             <View key={key as string} style={styles.breakdownRow}>
               <Text style={styles.breakdownLabel}>{CRITERIA_LABELS[key as string]}</Text>
               <View style={styles.breakdownBar}>
-                <View style={[styles.breakdownFill, { width: `${(val / 5) * 100}%` as any }]} />
+                <View style={[styles.breakdownFill, { width: `${(val / 5) * 100}%` }]} />
               </View>
               <Text style={styles.breakdownVal}>{val}</Text>
             </View>

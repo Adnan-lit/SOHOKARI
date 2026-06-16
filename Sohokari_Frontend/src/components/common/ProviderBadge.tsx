@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ComponentProps } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@theme/colors';
@@ -7,7 +8,9 @@ interface ProviderBadgeProps {
   badge: string;
 }
 
-const BADGE_CONFIG: Record<string, { label: string, icon: any, color: string, bg: string }> = {
+type IconName = ComponentProps<typeof Ionicons>['name'];
+
+const BADGE_CONFIG: Record<string, { label: string, icon: IconName, color: string, bg: string }> = {
   MOST_BOOKED: {
     label: 'Most Booked',
     icon: 'flame',
@@ -37,7 +40,7 @@ const BADGE_CONFIG: Record<string, { label: string, icon: any, color: string, bg
 export default function ProviderBadge({ badge }: ProviderBadgeProps) {
   const config = BADGE_CONFIG[badge] || {
     label: badge.replace(/_/g, ' '),
-    icon: 'medal',
+    icon: 'medal' as IconName,
     color: Colors.primary,
     bg: Colors.primaryLight + '20',
   };

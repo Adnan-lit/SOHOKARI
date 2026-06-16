@@ -1,6 +1,4 @@
 package com.adnan.sohokari_backend.config;
-
-
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -53,8 +51,6 @@ public class MongoConfig {
                 Indexes.ascending("userId"),
                 new IndexOptions().unique(true).name("userId_unique")
         );
-
-
         // ── bookings collection ───────────────────────────────────────────────
         MongoCollection<Document> bookings = db.getCollection("bookings");
 
@@ -79,8 +75,6 @@ public class MongoConfig {
                 ),
                 new IndexOptions().name("booking_slot_index")
         );
-
-
         // ── reviews collection ────────────────────────────────────────────────
         MongoCollection<Document> reviews = db.getCollection("reviews");
 

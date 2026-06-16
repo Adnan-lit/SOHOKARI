@@ -1,7 +1,9 @@
 import React from 'react';
+import type { ComponentProps } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
+type IconName = ComponentProps<typeof Ionicons>['name'];
 import { providersApi } from '@api/providers';
 import { Colors } from '@theme/colors';
 
@@ -27,7 +29,7 @@ export default function ActivitySummaryScreen() {
     );
   }
 
-  const StatCard = ({ title, value, icon, color }: { title: string, value: string | number, icon: any, color: string }) => (
+  const StatCard = ({ title, value, icon, color }: { title: string, value: string | number, icon: IconName, color: string }) => (
     <View style={styles.card}>
       <View style={[styles.iconContainer, { backgroundColor: color + '20' }]}>
         <Ionicons name={icon} size={24} color={color} />

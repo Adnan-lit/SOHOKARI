@@ -1,6 +1,4 @@
 package com.adnan.sohokari_backend.controller;
-
-
 import com.adnan.sohokari_backend.dto.request.SendMessageRequest;
 import com.adnan.sohokari_backend.dto.response.*;
 import com.adnan.sohokari_backend.service.ChatService;

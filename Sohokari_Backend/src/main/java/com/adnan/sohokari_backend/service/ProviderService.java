@@ -1,5 +1,7 @@
 package com.adnan.sohokari_backend.service;
 
+import com.adnan.sohokari_backend.exception.BadRequestException;
+
 import com.adnan.sohokari_backend.dto.request.UpdateProviderProfileRequest;
 import com.adnan.sohokari_backend.dto.response.ProviderProfileResponse;
 import com.adnan.sohokari_backend.dto.response.ProviderSummaryResponse;
@@ -31,10 +33,10 @@ public class ProviderService {
     // Get full profile by providerId (public)
     public ProviderProfileResponse getProfile(String providerId) {
         Provider provider = providerRepository.findById(providerId)
-                .orElseThrow(() -> new RuntimeException("Provider not found"));
+                .orElseThrow(() -> new BadRequestException("Provider not found"));
 
         User user = userRepository.findById(provider.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         return mapToFullProfile(user, provider);
     }
@@ -42,10 +44,10 @@ public class ProviderService {
     // Get full profile by userId (for logged-in provider)
     public ProviderProfileResponse getMyProfile(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         Provider provider = providerRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new RuntimeException("Provider profile not found"));
+                .orElseThrow(() -> new BadRequestException("Provider profile not found"));
 
         return mapToFullProfile(user, provider);
     }
@@ -54,10 +56,10 @@ public class ProviderService {
     public ProviderProfileResponse updateProfile(String email,
                                                  UpdateProviderProfileRequest req) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         Provider provider = providerRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new RuntimeException("Provider profile not found"));
+                .orElseThrow(() -> new BadRequestException("Provider profile not found"));
 
         if (req.getBio()        != null) provider.setBio(req.getBio());
         if (req.getSkills()     != null) provider.setSkills(req.getSkills());
@@ -87,10 +89,10 @@ public class ProviderService {
     // Toggle availability
     public boolean toggleAvailability(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         Provider provider = providerRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new RuntimeException("Provider profile not found"));
+                .orElseThrow(() -> new BadRequestException("Provider profile not found"));
 
         provider.setIsAvailable(!provider.getIsAvailable());
         providerRepository.save(provider);
@@ -100,10 +102,10 @@ public class ProviderService {
     // Submit Verification
     public ProviderProfileResponse submitVerification(String email, com.adnan.sohokari_backend.dto.request.SubmitVerificationRequest req) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         Provider provider = providerRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new RuntimeException("Provider profile not found"));
+                .orElseThrow(() -> new BadRequestException("Provider profile not found"));
 
         provider.setNidImage(req.getNidImage());
         provider.setTradeLicenseImage(req.getTradeLicenseImage());

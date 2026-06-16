@@ -23,7 +23,7 @@ export default function EditCustomerProfileScreen() {
     mutationFn: usersApi.updateProfile,
     onSuccess: (updatedUser) => {
       // update auth store
-      setProfile(updatedUser.name, updatedUser.phone, updatedUser.profilePhoto);
+      setProfile(updatedUser.name, updatedUser.phone ?? '', updatedUser.profilePhoto ?? '');
       Toast.show({ type: 'success', text1: 'Profile updated successfully' });
       navigation.goBack();
     },

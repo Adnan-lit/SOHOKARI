@@ -10,6 +10,9 @@ import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.adnan.sohokari_backend.exception.BadRequestException;
+import com.adnan.sohokari_backend.util.HtmlSanitizer;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,11 +35,11 @@ public class AuthService {
 
     public AuthResponse registerCustomer(CustomerRegisterRequest req) {
         if (userRepository.existsByEmail(req.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new BadRequestException("Email already registered");
         }
 
         User user = new User();
-        user.setName(req.getName());
+        user.setName(HtmlSanitizer.sanitize(req.getName()));
         user.setEmail(req.getEmail());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
         user.setPhone(req.getPhone());
@@ -52,11 +55,11 @@ public class AuthService {
 
     public AuthResponse registerAdmin(CustomerRegisterRequest req) {
         if (userRepository.existsByEmail(req.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new BadRequestException("Email already registered");
         }
 
         User user = new User();
-        user.setName(req.getName());
+        user.setName(HtmlSanitizer.sanitize(req.getName()));
         user.setEmail(req.getEmail());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
         user.setPhone(req.getPhone());
@@ -72,18 +75,18 @@ public class AuthService {
 
     public AuthResponse registerProvider(ProviderRegisterRequest req) {
         if (userRepository.existsByEmail(req.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new BadRequestException("Email already registered");
         }
 
         // Validate trade license for specific categories
         if (TRADE_LICENSE_REQUIRED.contains(req.getServiceCategory())
                 && (req.getTradeLicense() == null || req.getTradeLicense().isBlank())) {
-            throw new RuntimeException("Trade license is required for " + req.getServiceCategory());
+            throw new BadRequestException("Trade license is required for " + req.getServiceCategory());
         }
 
         // Create User
         User user = new User();
-        user.setName(req.getName());
+        user.setName(HtmlSanitizer.sanitize(req.getName()));
         user.setEmail(req.getEmail());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
         user.setPhone(req.getPhone());
@@ -127,11 +130,11 @@ public class AuthService {
 
     public AuthResponse refreshToken(String refreshToken) {
         if (!jwtUtil.validateToken(refreshToken)) {
-            throw new RuntimeException("Invalid or expired refresh token");
+            throw new BadRequestException("Invalid or expired refresh token");
         }
         String email = jwtUtil.getEmailFromToken(refreshToken);
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         String newAccess  = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
         String newRefresh = jwtUtil.generateRefreshToken(user.getEmail());

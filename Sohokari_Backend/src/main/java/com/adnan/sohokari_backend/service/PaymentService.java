@@ -1,5 +1,7 @@
 package com.adnan.sohokari_backend.service;
 
+import com.adnan.sohokari_backend.exception.BadRequestException;
+
 import com.adnan.sohokari_backend.dto.request.CreatePaymentRequest;
 import com.adnan.sohokari_backend.dto.response.PaymentResponse;
 import com.adnan.sohokari_backend.model.*;
@@ -23,26 +25,26 @@ public class PaymentService {
 
     public PaymentResponse createPayment(String customerEmail, CreatePaymentRequest req) {
         User customer = userRepository.findByEmail(customerEmail)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new BadRequestException("Customer not found"));
 
         Booking booking = bookingRepository.findById(req.getBookingId())
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
+                .orElseThrow(() -> new BadRequestException("Booking not found"));
 
         if (!booking.getCustomerId().equals(customer.getId())) {
-            throw new RuntimeException("Not authorized to create payment for this booking");
+            throw new BadRequestException("Not authorized to create payment for this booking");
         }
 
         if (booking.getStatus() != BookingStatus.COMPLETED) {
-            throw new RuntimeException("Payment can only be created for completed bookings");
+            throw new BadRequestException("Payment can only be created for completed bookings");
         }
 
         // Check if payment already exists
         paymentRepository.findByBookingId(req.getBookingId()).ifPresent(p -> {
-            throw new RuntimeException("Payment already exists for this booking");
+            throw new BadRequestException("Payment already exists for this booking");
         });
 
         Provider provider = providerRepository.findById(booking.getProviderId())
-                .orElseThrow(() -> new RuntimeException("Provider not found"));
+                .orElseThrow(() -> new BadRequestException("Provider not found"));
 
         Payment payment = new Payment();
         payment.setBookingId(req.getBookingId());
@@ -75,17 +77,17 @@ public class PaymentService {
 
     public PaymentResponse confirmPayment(String providerEmail, String paymentId) {
         User providerUser = userRepository.findByEmail(providerEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new RuntimeException("Payment not found"));
+                .orElseThrow(() -> new BadRequestException("Payment not found"));
 
         if (!payment.getProviderUserId().equals(providerUser.getId())) {
-            throw new RuntimeException("Not authorized to confirm this payment");
+            throw new BadRequestException("Not authorized to confirm this payment");
         }
 
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
-            throw new RuntimeException("Only PENDING payments can be confirmed");
+            throw new BadRequestException("Only PENDING payments can be confirmed");
         }
 
         payment.setPaymentStatus(PaymentStatus.CONFIRMED);
@@ -108,7 +110,7 @@ public class PaymentService {
 
     public PaymentResponse getPaymentByBooking(String userEmail, String bookingId) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         Payment payment = paymentRepository.findByBookingId(bookingId)
                 .orElse(null);
@@ -118,7 +120,7 @@ public class PaymentService {
         boolean isCustomer = payment.getCustomerId().equals(user.getId());
         boolean isProvider = payment.getProviderUserId().equals(user.getId());
         if (!isCustomer && !isProvider) {
-            throw new RuntimeException("Not authorized to view this payment");
+            throw new BadRequestException("Not authorized to view this payment");
         }
 
         return mapToResponse(payment);
@@ -126,15 +128,15 @@ public class PaymentService {
 
     public PaymentResponse getInvoice(String userEmail, String paymentId) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new RuntimeException("Payment not found"));
+                .orElseThrow(() -> new BadRequestException("Payment not found"));
 
         boolean isCustomer = payment.getCustomerId().equals(user.getId());
         boolean isProvider = payment.getProviderUserId().equals(user.getId());
         if (!isCustomer && !isProvider) {
-            throw new RuntimeException("Not authorized to view this invoice");
+            throw new BadRequestException("Not authorized to view this invoice");
         }
 
         return mapToResponse(payment);
@@ -142,12 +144,12 @@ public class PaymentService {
 
     public List<PaymentResponse> getMyPayments(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         List<Payment> payments;
         if (user.getRole() == Role.PROVIDER) {
             Provider provider = providerRepository.findByUserId(user.getId())
-                    .orElseThrow(() -> new RuntimeException("Provider not found"));
+                    .orElseThrow(() -> new BadRequestException("Provider not found"));
             payments = paymentRepository.findByProviderIdOrderByCreatedAtDesc(provider.getId());
         } else {
             payments = paymentRepository.findByCustomerIdOrderByCreatedAtDesc(user.getId());

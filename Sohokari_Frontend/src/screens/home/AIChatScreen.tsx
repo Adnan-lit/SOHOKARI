@@ -11,18 +11,20 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { aiApi } from "@api/ai";
 import { Colors } from "@theme/colors";
 import ProviderCard from "@components/common/ProviderCard";
+import type { ProviderSummaryResponse } from "@api/providers";
 import type { RootNavProp } from "@app-types/navigation.types";
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   text: string;
-  providers?: any[];
+  providers?: (Partial<ProviderSummaryResponse> & { providerId: string; name: string })[];
 }
 
 const WELCOME: Message = {
@@ -75,7 +77,7 @@ export default function AIChatScreen() {
         providers: res.suggestedProviders,
       };
       setMessages((prev) => [...prev, aiMsg]);
-    } catch (err: any) {
+    } catch (err: unknown) {
       const errMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
@@ -113,7 +115,7 @@ export default function AIChatScreen() {
               {item.providers.map((p) => (
                 <ProviderCard
                   key={p.providerId}
-                  provider={p}
+                  provider={p as ProviderSummaryResponse}
                   compact
                   onPress={() =>
                     navigation.navigate("ProviderProfile", {
@@ -157,25 +159,27 @@ export default function AIChatScreen() {
         </View>
       )}
 
-      <View style={styles.inputRow}>
-        <TextInput
-          style={styles.input}
-          value={input}
-          onChangeText={setInput}
-          placeholder="Type in Bangla or English…"
-          placeholderTextColor={Colors.textMuted}
-          multiline
-          maxLength={500}
-          onSubmitEditing={send}
-        />
-        <TouchableOpacity
-          style={[styles.sendBtn, !input.trim() && styles.sendBtnDisabled]}
-          onPress={send}
-          disabled={!input.trim() || loading}
-        >
-          <Ionicons name="send" size={20} color={Colors.white} />
-        </TouchableOpacity>
-      </View>
+      <SafeAreaView edges={['bottom']} style={styles.inputSafeArea}>
+        <View style={styles.inputRow}>
+          <TextInput
+            style={styles.input}
+            value={input}
+            onChangeText={setInput}
+            placeholder="Type in Bangla or English…"
+            placeholderTextColor={Colors.textMuted}
+            multiline
+            maxLength={500}
+            onSubmitEditing={send}
+          />
+          <TouchableOpacity
+            style={[styles.sendBtn, !input.trim() && styles.sendBtnDisabled]}
+            onPress={send}
+            disabled={!input.trim() || loading}
+          >
+            <Ionicons name="send" size={20} color={Colors.white} />
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 }
@@ -235,13 +239,16 @@ const styles = StyleSheet.create({
   },
   typingText: { fontSize: 12, color: Colors.textMuted },
 
+  inputSafeArea: {
+    backgroundColor: Colors.surface,
+    borderTopWidth: 0.5,
+    borderTopColor: Colors.border,
+  },
   inputRow: {
     flexDirection: "row",
     gap: 10,
     padding: 12,
     backgroundColor: Colors.surface,
-    borderTopWidth: 0.5,
-    borderTopColor: Colors.border,
     alignItems: "flex-end",
   },
   input: {

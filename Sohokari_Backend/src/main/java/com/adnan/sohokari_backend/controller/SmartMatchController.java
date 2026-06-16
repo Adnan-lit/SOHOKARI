@@ -1,6 +1,4 @@
 package com.adnan.sohokari_backend.controller;
-
-
 import com.adnan.sohokari_backend.dto.request.SmartMatchRequest;
 import com.adnan.sohokari_backend.dto.response.ApiResponse;
 import com.adnan.sohokari_backend.dto.response.SmartMatchResponse;

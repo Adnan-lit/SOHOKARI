@@ -1,6 +1,4 @@
 package com.adnan.sohokari_backend.repository;
-
-
 import com.adnan.sohokari_backend.model.ChatMessage;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -1,6 +1,4 @@
 package com.adnan.sohokari_backend.dto.request;
-
-
 import com.adnan.sohokari_backend.model.ChatMessage;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

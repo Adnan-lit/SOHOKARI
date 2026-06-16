@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, TextInputProps,
 } from 'react-native';
+import type { NativeSyntheticEvent, TargetedEvent } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -26,13 +27,13 @@ export default function FormInput({
   const [isFocused, setIsFocused] = useState(false);
   const focusAnim = useSharedValue(0);
 
-  const handleFocus = (e: any) => {
+  const handleFocus = (e: NativeSyntheticEvent<TargetedEvent>) => {
     setIsFocused(true);
     focusAnim.value = withTiming(1, { duration: 250 });
     onFocus?.(e);
   };
 
-  const handleBlur = (e: any) => {
+  const handleBlur = (e: NativeSyntheticEvent<TargetedEvent>) => {
     setIsFocused(false);
     focusAnim.value = withTiming(0, { duration: 250 });
     onBlur?.(e);

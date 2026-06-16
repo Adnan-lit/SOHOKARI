@@ -9,8 +9,7 @@ tags:
 # TEST: Edge Cases & Offline Handling
 # ══════════════════════════════════════════════════════════════
 
-- clearState
-- launchApp
+- openLink: "exp+sohokari://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
 - waitForAnimationToEnd
 
 # ── Test 1: Airplane mode login ──────────────────────────
@@ -51,7 +50,7 @@ tags:
 - takeScreenshot: screenshots/93_back_from_login
 
 # ── Test 5: Special characters in input ──────────────────
-- launchApp
+- openLink: "exp+sohokari://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
 - waitForAnimationToEnd
 - tapOn:
     text: "you@example.com"
@@ -65,7 +64,7 @@ tags:
 - takeScreenshot: screenshots/94_xss_sql_injection
 
 # ── Test 6: Long text input ──────────────────────────────
-- clearText
+- eraseText: 50
 - tapOn:
     text: "you@example.com"
 - inputText: "a]@b.c"

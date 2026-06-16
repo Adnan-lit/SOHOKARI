@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 import React, { useState } from "react";
 import {
   View,
@@ -95,11 +96,11 @@ export default function RegisterProviderScreen() {
         latitude: lat,
         longitude: lng,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       Toast.show({
         type: "error",
         text1: "Registration failed",
-        text2: err.message,
+        text2: err instanceof Error ? err.message : "Registration failed",
       });
     }
   };
@@ -202,7 +203,7 @@ export default function RegisterProviderScreen() {
           >
             <Ionicons
               name={
-                selectedCat ? (selectedCat.icon as any) : "construct-outline"
+                selectedCat ? selectedCat.icon as ComponentProps<typeof Ionicons>["name"] : "construct-outline"
               }
               size={18}
               color={Colors.textMuted}
@@ -240,7 +241,7 @@ export default function RegisterProviderScreen() {
                   }}
                 >
                   <Ionicons
-                    name={cat.icon as any}
+                    name={cat.icon as ComponentProps<typeof Ionicons>["name"]}
                     size={18}
                     color={
                       form.serviceCategory === cat.key

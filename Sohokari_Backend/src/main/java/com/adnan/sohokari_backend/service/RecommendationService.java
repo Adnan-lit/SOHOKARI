@@ -1,5 +1,7 @@
 package com.adnan.sohokari_backend.service;
 
+import com.adnan.sohokari_backend.exception.BadRequestException;
+
 import com.adnan.sohokari_backend.dto.response.RecommendationResponse;
 import com.adnan.sohokari_backend.model.*;
 import com.adnan.sohokari_backend.repository.*;
@@ -31,7 +33,7 @@ public class RecommendationService {
                                                   ServiceCategory category,
                                                   int limit) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         UserPreference prefs = preferenceRepository
                 .findByUserId(user.getId())

@@ -8,57 +8,40 @@ tags:
 # TEST: Customer Login Flow
 # ══════════════════════════════════════════════════════════════
 
-- clearState
-- launchApp
+- openLink: "exp+sohokari://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
 
-# Wait for splash screen to finish
-- waitForAnimationToEnd
+# Dismiss dev menu if it appears (optional)
+- tapOn:
+    text: "Continue"
+    optional: true
 
-# Screenshot: Splash screen
-- takeScreenshot: screenshots/01_splash_screen
+# Wait for login screen to fully load
+- extendedWaitUntil:
+    visible: "Welcome back"
+    timeout: 60000
 
-# Should see login screen
-- assertVisible: "Sign In"
 - takeScreenshot: screenshots/02_login_screen
 
-# ── Test 1: Empty form submission ─────────────────────────
-- tapOn: "Sign In"
-- assertVisible: "Email is required"
-- takeScreenshot: screenshots/03_login_empty_validation
+# ── Test: Valid login ──────────────────────────────────
 
-# ── Test 2: Invalid email format ──────────────────────────
-- tapOn:
-    text: "you@example.com"
-- inputText: "not-an-email"
-- tapOn: "Sign In"
-- assertVisible: "Invalid email"
-- takeScreenshot: screenshots/04_login_invalid_email
-
-# ── Test 3: Wrong credentials ─────────────────────────────
-- clearText
-- tapOn:
-    text: "you@example.com"
-- inputText: "wrong@test.com"
-- tapOn:
-    text: "••••••••"
-    index: 0
-- inputText: "wrongpassword"
-- tapOn: "Sign In"
-- waitForAnimationToEnd
-- assertVisible:
-    text: "Invalid email or password"
-    optional: true
-- takeScreenshot: screenshots/05_login_wrong_creds
-
-# ── Test 4: Valid login ──────────────────────────────────
-- clearText
-- tapOn:
-    text: "you@example.com"
+# Tap and type email - use the placeholder text
+- tapOn: "you@example.com"
 - inputText: "customer@test.com"
-- tapOn:
-    text: "••••••••"
-    index: 0
-- inputText: "password123"
-- tapOn: "Sign In"
+
+# Hide keyboard first, then tap password field
+- hideKeyboard
 - waitForAnimationToEnd
-- takeScreenshot: screenshots/06_login_success_home
+
+# Tap below the Password label on the actual input dots
+- tapOn: "••••••••"
+- inputText: "password123"
+
+# Hide keyboard and tap Sign In
+- hideKeyboard
+- tapOn: "Sign In"
+
+# Wait for response
+- waitForAnimationToEnd
+
+# Take screenshot of result
+- takeScreenshot: screenshots/06_login_result

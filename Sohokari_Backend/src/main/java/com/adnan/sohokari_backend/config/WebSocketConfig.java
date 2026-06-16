@@ -1,6 +1,4 @@
 package com.adnan.sohokari_backend.config;
-
-
 import com.adnan.sohokari_backend.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;

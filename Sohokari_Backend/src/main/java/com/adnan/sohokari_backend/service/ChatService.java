@@ -1,6 +1,6 @@
 package com.adnan.sohokari_backend.service;
 
-
+import com.adnan.sohokari_backend.exception.BadRequestException;
 import com.adnan.sohokari_backend.dto.request.SendMessageRequest;
 import com.adnan.sohokari_backend.dto.response.ChatMessageResponse;
 import com.adnan.sohokari_backend.dto.response.ConversationResponse;
@@ -32,7 +32,7 @@ public class ChatService {
                                            SendMessageRequest req) {
 
         User sender = userRepository.findByEmail(senderEmail)
-                .orElseThrow(() -> new RuntimeException("Sender not found"));
+                .orElseThrow(() -> new BadRequestException("Sender not found"));
 
         // Validate booking exists and sender is part of it
         boolean isCustomer = false;
@@ -45,13 +45,13 @@ public class ChatService {
             }
         } else {
             Booking booking = bookingRepository.findById(req.getBookingId())
-                    .orElseThrow(() -> new RuntimeException("Booking not found"));
+                    .orElseThrow(() -> new BadRequestException("Booking not found"));
             isCustomer = booking.getCustomerId().equals(sender.getId());
             isProvider = booking.getProviderUserId().equals(sender.getId());
         }
 
         if (!isCustomer && !isProvider) {
-            throw new RuntimeException("Not authorized to chat in this booking/inquiry");
+            throw new BadRequestException("Not authorized to chat in this booking/inquiry");
         }
 
         // Save message
@@ -76,26 +76,35 @@ public class ChatService {
         }
 
         // ── Push notification (for offline users) ─────────────────────────
-        String title = "New message from " + sender.getName();
-        String body = req.getContent().length() > 50
-                ? req.getContent().substring(0, 50) + "..." : req.getContent();
+        // Skip notification if sender IS the receiver (self-chat edge case)
+        // or if both users share the same push token (same-device testing)
+        boolean sameUser = sender.getId().equals(req.getReceiverId());
+        boolean sameToken = receiver != null
+                && receiver.getExpoPushToken() != null
+                && receiver.getExpoPushToken().equals(sender.getExpoPushToken());
 
-        if (receiver != null && receiver.getExpoPushToken() != null) {
-            Map<String, Object> data = new HashMap<>();
-            data.put("type", Notification.NotificationType.NEW_MESSAGE.name());
-            data.put("bookingId", req.getBookingId());
-            data.put("senderId", sender.getId());
-            data.put("senderName", sender.getName());
-            
-            expoPushService.sendPushNotification(receiver.getExpoPushToken(), title, body, data);
-        } else {
-            fcmService.sendNotification(
-                    req.getReceiverId(),
-                    title,
-                    body,
-                    Notification.NotificationType.NEW_MESSAGE,
-                    req.getBookingId()
-            );
+        if (!sameUser && !sameToken) {
+            String title = "New message from " + sender.getName();
+            String body = req.getContent().length() > 50
+                    ? req.getContent().substring(0, 50) + "..." : req.getContent();
+
+            if (receiver != null && receiver.getExpoPushToken() != null) {
+                Map<String, Object> data = new HashMap<>();
+                data.put("type", Notification.NotificationType.NEW_MESSAGE.name());
+                data.put("bookingId", req.getBookingId());
+                data.put("senderId", sender.getId());
+                data.put("senderName", sender.getName());
+
+                expoPushService.sendPushNotification(receiver.getExpoPushToken(), title, body, data);
+            } else {
+                fcmService.sendNotification(
+                        req.getReceiverId(),
+                        title,
+                        body,
+                        Notification.NotificationType.NEW_MESSAGE,
+                        req.getBookingId()
+                );
+            }
         }
 
         return response;
@@ -107,7 +116,7 @@ public class ChatService {
                                                     String bookingId,
                                                     int page, int size) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         // Authorization check
         boolean isCustomer = false;
@@ -120,13 +129,13 @@ public class ChatService {
             }
         } else {
             Booking booking = bookingRepository.findById(bookingId)
-                    .orElseThrow(() -> new RuntimeException("Booking not found"));
+                    .orElseThrow(() -> new BadRequestException("Booking not found"));
             isCustomer = booking.getCustomerId().equals(user.getId());
             isProvider = booking.getProviderUserId().equals(user.getId());
         }
 
         if (!isCustomer && !isProvider) {
-            throw new RuntimeException("Not authorized");
+            throw new BadRequestException("Not authorized");
         }
 
         Pageable pageable = PageRequest.of(page, size);
@@ -156,7 +165,7 @@ public class ChatService {
 
     public List<ConversationResponse> getConversations(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         // Find all bookings this user is part of
         List<Booking> bookings;
@@ -246,13 +255,13 @@ public class ChatService {
 
     public void deleteMessage(String userEmail, String messageId) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         ChatMessage msg = chatMessageRepository.findById(messageId)
-                .orElseThrow(() -> new RuntimeException("Message not found"));
+                .orElseThrow(() -> new BadRequestException("Message not found"));
 
         if (!msg.getSenderId().equals(user.getId())) {
-            throw new RuntimeException("Can only delete your own messages");
+            throw new BadRequestException("Can only delete your own messages");
         }
 
         chatMessageRepository.delete(msg);
@@ -262,7 +271,7 @@ public class ChatService {
 
     public void markAsRead(String userEmail, String bookingId) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         List<ChatMessage> unreadMessages = chatMessageRepository
                 .findByBookingIdAndReceiverIdAndIsReadFalse(bookingId, user.getId());

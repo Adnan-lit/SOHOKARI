@@ -1,5 +1,7 @@
 package com.adnan.sohokari_backend.service;
 
+import com.adnan.sohokari_backend.exception.BadRequestException;
+
 import com.adnan.sohokari_backend.dto.request.CancelBookingRequest;
 import com.adnan.sohokari_backend.dto.request.CreateBookingRequest;
 import com.adnan.sohokari_backend.dto.response.BookingResponse;
@@ -31,22 +33,22 @@ public class BookingService {
 
         // Get customer
         User customer = userRepository.findByEmail(customerEmail)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new BadRequestException("Customer not found"));
 
         // Get provider
         Provider provider = providerRepository.findById(req.getProviderId())
-                .orElseThrow(() -> new RuntimeException("Provider not found"));
+                .orElseThrow(() -> new BadRequestException("Provider not found"));
 
         // Check provider availability flag
         if (!Boolean.TRUE.equals(provider.getIsAvailable())) {
-            throw new RuntimeException("Provider is currently not available");
+            throw new BadRequestException("Provider is currently not available");
         }
 
         // Ensure scheduled date+time is not in the past
         LocalDateTime scheduledAt = LocalDateTime.of(
                 req.getScheduledDate(), req.getScheduledTime());
         if (scheduledAt.isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Scheduled date/time must be in the future");
+            throw new BadRequestException("Scheduled date/time must be in the future");
         }
 
         // ── Double booking check ──────────────────────────────────────────
@@ -55,7 +57,7 @@ public class BookingService {
                 req.getScheduledDate(),
                 req.getScheduledTime()
         ).ifPresent(b -> {
-            throw new RuntimeException(
+            throw new BadRequestException(
                     "Provider already has a booking at this date and time");
         });
 
@@ -98,7 +100,7 @@ public class BookingService {
         User providerUser = userRepository.findByEmail(providerEmail).orElse(null);
 
         if (booking.getStatus() != BookingStatus.REQUESTED) {
-            throw new RuntimeException("Only REQUESTED bookings can be accepted");
+            throw new BadRequestException("Only REQUESTED bookings can be accepted");
         }
 
         booking.setStatus(BookingStatus.ACCEPTED);
@@ -131,7 +133,7 @@ public class BookingService {
         Booking booking = getBookingForProvider(providerEmail, bookingId);
 
         if (booking.getStatus() != BookingStatus.REQUESTED) {
-            throw new RuntimeException("Only REQUESTED bookings can be rejected");
+            throw new BadRequestException("Only REQUESTED bookings can be rejected");
         }
 
         booking.setStatus(BookingStatus.REJECTED);
@@ -155,7 +157,7 @@ public class BookingService {
         Booking booking = getBookingForProvider(providerEmail, bookingId);
 
         if (booking.getStatus() != BookingStatus.ACCEPTED) {
-            throw new RuntimeException("Only ACCEPTED bookings can be started");
+            throw new BadRequestException("Only ACCEPTED bookings can be started");
         }
 
         booking.setStatus(BookingStatus.IN_PROGRESS);
@@ -170,7 +172,7 @@ public class BookingService {
         Booking booking = getBookingForProvider(providerEmail, bookingId);
 
         if (booking.getStatus() != BookingStatus.IN_PROGRESS) {
-            throw new RuntimeException("Only IN_PROGRESS bookings can be completed");
+            throw new BadRequestException("Only IN_PROGRESS bookings can be completed");
         }
 
         booking.setStatus(BookingStatus.COMPLETED);
@@ -184,7 +186,7 @@ public class BookingService {
 
         // Update provider stats
         Provider provider = providerRepository.findById(booking.getProviderId())
-                .orElseThrow(() -> new RuntimeException("Provider not found"));
+                .orElseThrow(() -> new BadRequestException("Provider not found"));
         provider.setTotalCompletedBookings(
                 provider.getTotalCompletedBookings() + 1);
         providerRepository.save(provider);
@@ -205,19 +207,19 @@ public class BookingService {
     public BookingResponse cancelBooking(String customerEmail, String bookingId,
                                          CancelBookingRequest req) {
         User customer = userRepository.findByEmail(customerEmail)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new BadRequestException("Customer not found"));
 
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
+                .orElseThrow(() -> new BadRequestException("Booking not found"));
 
         if (!booking.getCustomerId().equals(customer.getId())) {
-            throw new RuntimeException("Not authorized to cancel this booking");
+            throw new BadRequestException("Not authorized to cancel this booking");
         }
 
         if (booking.getStatus() == BookingStatus.COMPLETED
                 || booking.getStatus() == BookingStatus.CANCELLED
                 || booking.getStatus() == BookingStatus.REJECTED) {
-            throw new RuntimeException("Cannot cancel a " + booking.getStatus() + " booking");
+            throw new BadRequestException("Cannot cancel a " + booking.getStatus() + " booking");
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
@@ -232,17 +234,17 @@ public class BookingService {
 
     public BookingResponse getBooking(String userEmail, String bookingId) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
+                .orElseThrow(() -> new BadRequestException("Booking not found"));
 
         // Only customer or provider of this booking can view it
         boolean isCustomer = booking.getCustomerId().equals(user.getId());
         boolean isProvider = booking.getProviderUserId().equals(user.getId());
 
         if (!isCustomer && !isProvider) {
-            throw new RuntimeException("Not authorized to view this booking");
+            throw new BadRequestException("Not authorized to view this booking");
         }
 
         return buildResponse(booking);
@@ -254,7 +256,7 @@ public class BookingService {
                                                BookingStatus status,
                                                int page, int size) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         Pageable pageable = PageRequest.of(page, size);
 
@@ -269,7 +271,7 @@ public class BookingService {
         } else {
             // PROVIDER — find by provider profile id
             Provider provider = providerRepository.findByUserId(user.getId())
-                    .orElseThrow(() -> new RuntimeException("Provider profile not found"));
+                    .orElseThrow(() -> new BadRequestException("Provider profile not found"));
 
             bookings = status != null
                     ? bookingRepository.findByProviderIdAndStatusOrderByCreatedAtDesc(
@@ -285,13 +287,13 @@ public class BookingService {
 
     private Booking getBookingForProvider(String providerEmail, String bookingId) {
         User user = userRepository.findByEmail(providerEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
+                .orElseThrow(() -> new BadRequestException("Booking not found"));
 
         if (!booking.getProviderUserId().equals(user.getId())) {
-            throw new RuntimeException("Not authorized to manage this booking");
+            throw new BadRequestException("Not authorized to manage this booking");
         }
         return booking;
     }

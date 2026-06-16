@@ -41,6 +41,9 @@ export default function NearbyMapScreen() {
   const navigation = useNavigation<RootNavProp>();
   const { token } = useAuthStore();
 
+  // Dynamic top offset: filter overlay height (~100px for search bar + category pills)
+  const OVERLAY_BOTTOM = 100;
+
   // ── State ──────────────────────────────────────────────────────────────
   const [myLocation, setMyLocation] = useState(DEFAULT_LOCATION);
   const [mapCenter, setMapCenter] = useState(DEFAULT_LOCATION);
@@ -401,7 +404,7 @@ export default function NearbyMapScreen() {
 
       {/* ── "Search This Area" Button ────────────────────────────────── */}
       {hasPanned && (
-        <TouchableOpacity style={styles.searchAreaBtn} onPress={handleSearchThisArea} activeOpacity={0.85}>
+        <TouchableOpacity style={[styles.searchAreaBtn, { top: OVERLAY_BOTTOM }]} onPress={handleSearchThisArea} activeOpacity={0.85}>
           <Ionicons name="search" size={15} color={Colors.white} />
           <Text style={styles.searchAreaText}>Search this area</Text>
         </TouchableOpacity>
@@ -470,15 +473,15 @@ export default function NearbyMapScreen() {
       )}
 
       {/* ── Provider Count Badge ─────────────────────────────────────── */}
-      {!loading && providers.length > 0 && !showFilters && (
-        <View style={styles.countBadge}>
+      {!loading && providers.length > 0 && !showFilters && !hasPanned && (
+        <View style={[styles.countBadge, { top: OVERLAY_BOTTOM }]}>
           <Text style={styles.countText}>{providers.length} providers nearby</Text>
         </View>
       )}
 
       {/* ── Loading ──────────────────────────────────────────────────── */}
       {loading && (
-        <View style={styles.loadingOverlay}>
+        <View style={[styles.loadingOverlay, { top: OVERLAY_BOTTOM }]}>
           <ActivityIndicator color={Colors.primary} />
         </View>
       )}
@@ -552,9 +555,9 @@ const styles = StyleSheet.create({
   },
   mapSearchInput: { flex: 1, fontSize: 14, color: Colors.text, padding: 0 },
 
-  // Search This Area
+  // Search This Area (top is set dynamically via OVERLAY_BOTTOM)
   searchAreaBtn:  {
-    position: 'absolute', top: 60, alignSelf: 'center',
+    position: 'absolute', alignSelf: 'center',
     flexDirection: 'row', alignItems: 'center', gap: 6,
     backgroundColor: Colors.accent, borderRadius: 24,
     paddingHorizontal: 20, paddingVertical: 11,
@@ -562,12 +565,12 @@ const styles = StyleSheet.create({
   },
   searchAreaText: { fontSize: 14, color: Colors.white, fontWeight: '700', letterSpacing: 0.3 },
 
-  // Provider count badge
-  countBadge:     { position: 'absolute', top: 60, alignSelf: 'center', backgroundColor: 'rgba(30,41,59,0.85)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6, elevation: 4 },
+  // Provider count badge (top is set dynamically via OVERLAY_BOTTOM)
+  countBadge:     { position: 'absolute', alignSelf: 'center', backgroundColor: 'rgba(30,41,59,0.85)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6, elevation: 4 },
   countText:      { fontSize: 12, color: Colors.white, fontWeight: '600' },
 
-  // Loading
-  loadingOverlay: { position: 'absolute', top: 60, alignSelf: 'center', backgroundColor: Colors.surface, borderRadius: 20, padding: 10, elevation: 4 },
+  // Loading (top is set dynamically via OVERLAY_BOTTOM)
+  loadingOverlay: { position: 'absolute', alignSelf: 'center', backgroundColor: Colors.surface, borderRadius: 20, padding: 10, elevation: 4 },
 
   // My location / recenter button
   myLocBtn:       {

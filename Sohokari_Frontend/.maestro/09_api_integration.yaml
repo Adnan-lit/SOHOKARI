@@ -10,8 +10,7 @@ tags:
 # Tests backend connectivity and error handling
 # ══════════════════════════════════════════════════════════════
 
-- clearState
-- launchApp
+- openLink: "exp+sohokari://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
 - waitForAnimationToEnd
 
 # ── Test 1: Login API returns proper error for bad creds ──
@@ -27,7 +26,7 @@ tags:
 - takeScreenshot: screenshots/80_api_bad_login
 
 # ── Test 2: Login with valid creds and verify token ──────
-- clearText
+- eraseText: 50
 - tapOn:
     text: "you@example.com"
 - inputText: "customer@test.com"

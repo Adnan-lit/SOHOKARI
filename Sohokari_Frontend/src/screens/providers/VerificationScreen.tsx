@@ -31,7 +31,8 @@ export default function VerificationScreen() {
     const match = /\\.(\\w+)$/.exec(filename);
     const type = match ? `image/${match[1]}` : `image/jpeg`;
 
-    formData.append('file', { uri, name: filename, type } as any);
+    // React Native requires this cast for FormData file append
+    formData.append('file', { uri, name: filename, type } as unknown as Blob);
 
     const { data } = await client.post('/files/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -59,8 +60,9 @@ export default function VerificationScreen() {
 
       Alert.alert('Success', 'Verification submitted! An admin will review it shortly.');
       navigation.goBack();
-    } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to submit verification');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Failed to submit verification';
+      Alert.alert('Error', message);
     } finally {
       setUploading(false);
     }

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
+import type { ComponentProps } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
   TouchableOpacity, ActivityIndicator, Modal, TextInput,
@@ -6,6 +7,7 @@ import {
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
+type IconName = ComponentProps<typeof Ionicons>['name'];
 import dayjs        from 'dayjs';
 import Toast        from 'react-native-toast-message';
 import * as Print   from 'expo-print';
@@ -45,11 +47,11 @@ export default function BookingDetailScreen() {
     qc.invalidateQueries({ queryKey: ['myBookings'] });
   };
 
-  const acceptM   = useMutation({ mutationFn: () => bookingsApi.accept(params.bookingId),   onSuccess: () => { invalidate(); Toast.show({ type: 'success', text1: 'Booking accepted!'  }); }, onError: (e: any) => Toast.show({ type: 'error', text1: e.message }) });
-  const startM    = useMutation({ mutationFn: () => bookingsApi.start(params.bookingId),    onSuccess: () => { invalidate(); Toast.show({ type: 'success', text1: 'Service started!'  }); }, onError: (e: any) => Toast.show({ type: 'error', text1: e.message }) });
-  const completeM = useMutation({ mutationFn: () => bookingsApi.complete(params.bookingId), onSuccess: () => { invalidate(); Toast.show({ type: 'success', text1: 'Service completed!'}); }, onError: (e: any) => Toast.show({ type: 'error', text1: e.message }) });
-  const rejectM   = useMutation({ mutationFn: () => bookingsApi.reject(params.bookingId, reason),  onSuccess: () => { invalidate(); setReasonModal(null); Toast.show({ type: 'success', text1: 'Booking rejected' }); }, onError: (e: any) => Toast.show({ type: 'error', text1: e.message }) });
-  const cancelM   = useMutation({ mutationFn: () => bookingsApi.cancel(params.bookingId, reason),  onSuccess: () => { invalidate(); setReasonModal(null); Toast.show({ type: 'success', text1: 'Booking cancelled'}); }, onError: (e: any) => Toast.show({ type: 'error', text1: e.message }) });
+  const acceptM   = useMutation({ mutationFn: () => bookingsApi.accept(params.bookingId),   onSuccess: () => { invalidate(); Toast.show({ type: 'success', text1: 'Booking accepted!'  }); }, onError: (e: Error) => Toast.show({ type: 'error', text1: e.message }) });
+  const startM    = useMutation({ mutationFn: () => bookingsApi.start(params.bookingId),    onSuccess: () => { invalidate(); Toast.show({ type: 'success', text1: 'Service started!'  }); }, onError: (e: Error) => Toast.show({ type: 'error', text1: e.message }) });
+  const completeM = useMutation({ mutationFn: () => bookingsApi.complete(params.bookingId), onSuccess: () => { invalidate(); Toast.show({ type: 'success', text1: 'Service completed!'}); }, onError: (e: Error) => Toast.show({ type: 'error', text1: e.message }) });
+  const rejectM   = useMutation({ mutationFn: () => bookingsApi.reject(params.bookingId, reason),  onSuccess: () => { invalidate(); setReasonModal(null); Toast.show({ type: 'success', text1: 'Booking rejected' }); }, onError: (e: Error) => Toast.show({ type: 'error', text1: e.message }) });
+  const cancelM   = useMutation({ mutationFn: () => bookingsApi.cancel(params.bookingId, reason),  onSuccess: () => { invalidate(); setReasonModal(null); Toast.show({ type: 'success', text1: 'Booking cancelled'}); }, onError: (e: Error) => Toast.show({ type: 'error', text1: e.message }) });
 
   if (isLoading || !booking) {
     return <View style={styles.center}><ActivityIndicator size="large" color={Colors.primary} /></View>;
@@ -101,8 +103,9 @@ export default function BookingDetailScreen() {
 
       const { uri } = await Print.printToFileAsync({ html });
       await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
-    } catch (err: any) {
-      Toast.show({ type: 'error', text1: 'Failed to generate invoice', text2: err.message });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      Toast.show({ type: 'error', text1: 'Failed to generate invoice', text2: message });
     }
   };
 
@@ -157,10 +160,10 @@ export default function BookingDetailScreen() {
 
   // Timeline
   const timeline = [
-    { step: 'REQUESTED',   label: 'Requested',   icon: 'time-outline'             },
-    { step: 'ACCEPTED',    label: 'Accepted',     icon: 'checkmark-circle-outline' },
-    { step: 'IN_PROGRESS', label: 'In Progress',  icon: 'construct-outline'        },
-    { step: 'COMPLETED',   label: 'Completed',    icon: 'trophy-outline'           },
+    { step: 'REQUESTED',   label: 'Requested',   icon: 'time-outline' as IconName             },
+    { step: 'ACCEPTED',    label: 'Accepted',     icon: 'checkmark-circle-outline' as IconName },
+    { step: 'IN_PROGRESS', label: 'In Progress',  icon: 'construct-outline' as IconName        },
+    { step: 'COMPLETED',   label: 'Completed',    icon: 'trophy-outline' as IconName           },
   ];
   const statusOrder = ['REQUESTED', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED', 'REVIEWED'];
   const currentIdx  = statusOrder.indexOf(status);
@@ -194,7 +197,7 @@ export default function BookingDetailScreen() {
               <React.Fragment key={t.step}>
                 <View style={styles.timelineStep}>
                   <View style={[styles.timelineDot, done && styles.timelineDotDone, current && styles.timelineDotCurrent]}>
-                    <Ionicons name={t.icon as any} size={14} color={done ? Colors.white : Colors.textMuted} />
+                    <Ionicons name={t.icon} size={14} color={done ? Colors.white : Colors.textMuted} />
                   </View>
                   <Text style={[styles.timelineLabel, done && styles.timelineLabelDone]}>{t.label}</Text>
                 </View>
@@ -211,16 +214,16 @@ export default function BookingDetailScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Booking Details</Text>
         {[
-          { icon: 'construct-outline',      label: 'Service',  value: booking.serviceCategory?.replace('_', ' ') },
-          { icon: 'calendar-outline',       label: 'Date',     value: booking.scheduledDate ? dayjs(booking.scheduledDate).format('DD MMMM YYYY') : '—' },
-          { icon: 'time-outline',           label: 'Time',     value: booking.scheduledTime ? String(booking.scheduledTime).substring(0, 5) : '—' },
-          { icon: 'location-outline',       label: 'Address',  value: booking.address },
-          ...(booking.notes ? [{ icon: 'document-text-outline', label: 'Notes', value: booking.notes }] : []),
-          ...(booking.cancellationReason ? [{ icon: 'close-circle-outline', label: 'Cancelled', value: booking.cancellationReason }] : []),
-          ...(booking.rejectionReason    ? [{ icon: 'close-circle-outline', label: 'Rejected',  value: booking.rejectionReason    }] : []),
+          { icon: 'construct-outline' as IconName,      label: 'Service',  value: booking.serviceCategory?.replace('_', ' ') },
+          { icon: 'calendar-outline' as IconName,       label: 'Date',     value: booking.scheduledDate ? dayjs(booking.scheduledDate).format('DD MMMM YYYY') : '—' },
+          { icon: 'time-outline' as IconName,           label: 'Time',     value: booking.scheduledTime ? String(booking.scheduledTime).substring(0, 5) : '—' },
+          { icon: 'location-outline' as IconName,       label: 'Address',  value: booking.address },
+          ...(booking.notes ? [{ icon: 'document-text-outline' as IconName, label: 'Notes', value: booking.notes }] : []),
+          ...(booking.cancellationReason ? [{ icon: 'close-circle-outline' as IconName, label: 'Cancelled', value: booking.cancellationReason }] : []),
+          ...(booking.rejectionReason    ? [{ icon: 'close-circle-outline' as IconName, label: 'Rejected',  value: booking.rejectionReason    }] : []),
         ].map(({ icon, label, value }) => (
           <View key={label} style={styles.detailRow}>
-            <Ionicons name={icon as any} size={16} color={Colors.textMuted} />
+            <Ionicons name={icon} size={16} color={Colors.textMuted} />
             <Text style={styles.detailLabel}>{label}</Text>
             <Text style={styles.detailValue}>{value}</Text>
           </View>

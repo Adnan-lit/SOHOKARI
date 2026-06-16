@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 import React from 'react';
 import { ScrollView, TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import { Ionicons }            from '@expo/vector-icons';
@@ -33,7 +34,7 @@ export default function CategoryPills({ selected, onSelect }: Props) {
             onPress={() => onSelect(active ? null : cat.key)}
           >
             <Ionicons
-              name={cat.icon as any}
+              name={cat.icon as ComponentProps<typeof Ionicons>["name"]}
               size={14}
               color={active ? Colors.white : Colors.primary}
               style={{ marginRight: 5 }}

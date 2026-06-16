@@ -83,7 +83,7 @@ export default function ReviewFormScreen() {
       Toast.show({ type: 'success', text1: 'Review submitted!', text2: 'Thank you for your feedback.' });
       navigation.goBack();
     },
-    onError: (err: any) => Toast.show({ type: 'error', text1: 'Failed', text2: err.message }),
+    onError: (err: Error) => Toast.show({ type: 'error', text1: 'Failed', text2: err.message }),
   });
 
   const avg = Object.values(ratings).filter(v => v > 0);

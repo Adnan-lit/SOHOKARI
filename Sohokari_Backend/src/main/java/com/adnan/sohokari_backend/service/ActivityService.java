@@ -1,6 +1,6 @@
 package com.adnan.sohokari_backend.service;
 
-
+import com.adnan.sohokari_backend.exception.BadRequestException;
 import com.adnan.sohokari_backend.dto.response.ActivitySummaryResponse;
 import com.adnan.sohokari_backend.model.*;
 import com.adnan.sohokari_backend.repository.*;
@@ -19,7 +19,7 @@ public class ActivityService {
     public ActivitySummaryResponse getSummary(String userEmail) {
 
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found"));
 
         ActivitySummaryResponse res = new ActivitySummaryResponse();
 
@@ -39,7 +39,7 @@ public class ActivityService {
 
         } else if (user.getRole() == Role.PROVIDER) {
             Provider provider = providerRepository.findByUserId(user.getId())
-                    .orElseThrow(() -> new RuntimeException("Provider not found"));
+                    .orElseThrow(() -> new BadRequestException("Provider not found"));
             String pId = provider.getId();
 
             res.setTotalBookings(bookingRepository.countByProviderId(pId));

@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ComponentProps } from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
   ActivityIndicator, TouchableOpacity,
@@ -6,6 +7,7 @@ import {
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
+type IconName = ComponentProps<typeof Ionicons>['name'];
 import Toast from 'react-native-toast-message';
 import { paymentsApi, PaymentResponse, PaymentMethod } from '@api/payments';
 import { Colors } from '@theme/colors';
@@ -15,7 +17,7 @@ import type { RootStackParamList, RootNavProp } from '@app-types/navigation.type
 
 type RoutePropType = RouteProp<RootStackParamList, 'Invoice'>;
 
-const PAYMENT_LABELS: Record<PaymentMethod, { label: string; icon: string; color: string }> = {
+const PAYMENT_LABELS: Record<PaymentMethod, { label: string; icon: IconName; color: string }> = {
   CASH:   { label: 'Cash',   icon: 'cash-outline',    color: '#4CAF50' },
   BKASH:  { label: 'bKash',  icon: 'phone-portrait-outline', color: '#E2136E' },
   NAGAD:  { label: 'Nagad',  icon: 'phone-portrait-outline', color: '#F6921E' },
@@ -39,7 +41,7 @@ export default function InvoiceScreen() {
       qc.invalidateQueries({ queryKey: ['payment', params.bookingId] });
       Toast.show({ type: 'success', text1: 'Payment Confirmed ✅' });
     },
-    onError: (e: any) => Toast.show({ type: 'error', text1: 'Error', text2: e.message }),
+    onError: (e: Error) => Toast.show({ type: 'error', text1: 'Error', text2: e.message }),
   });
 
   if (isLoading) {
@@ -94,7 +96,7 @@ export default function InvoiceScreen() {
         <Text style={styles.sectionTitle}>Payment Method</Text>
         <View style={styles.methodCard}>
           <View style={[styles.methodIcon, { backgroundColor: pm.color + '20' }]}>
-            <Ionicons name={pm.icon as any} size={22} color={pm.color} />
+            <Ionicons name={pm.icon} size={22} color={pm.color} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.methodName}>{pm.label}</Text>

@@ -1,6 +1,4 @@
 package com.adnan.sohokari_backend.controller;
-
-
 import com.adnan.sohokari_backend.dto.request.SubmitVerificationRequest;
 import com.adnan.sohokari_backend.dto.request.UpdateProviderProfileRequest;
 import com.adnan.sohokari_backend.dto.request.ProviderSearchRequest;

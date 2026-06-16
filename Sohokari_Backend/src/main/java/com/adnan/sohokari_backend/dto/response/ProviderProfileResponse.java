@@ -1,6 +1,7 @@
 package com.adnan.sohokari_backend.dto.response;
 
 import com.adnan.sohokari_backend.model.ServiceCategory;
+import com.adnan.sohokari_backend.model.VerificationStatus;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -22,6 +23,8 @@ public class ProviderProfileResponse {
     private String bio;
     private Double hourlyRate;
     private String serviceArea;
+    private Double latitude;
+    private Double longitude;
 
     // Stats
     private Double averageRating;
@@ -32,10 +35,20 @@ public class ProviderProfileResponse {
 
     // Verification
     private Boolean nidVerified;
+    private String nidImage;
     private Boolean tradeLicenseVerified;
+    private String tradeLicenseImage;
+    private VerificationStatus verificationStatus;
 
     // Badges
     private List<String> badges;
+
+    // Portfolio
+    private List<String> portfolio;
+
+    // Payment settings
+    private List<com.adnan.sohokari_backend.model.PaymentMethod> acceptedPaymentMethods;
+    private String paymentMobileNumber;
 
     private LocalDateTime memberSince;
 }

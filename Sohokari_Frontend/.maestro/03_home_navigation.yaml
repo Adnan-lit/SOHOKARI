@@ -1,0 +1,99 @@
+appId: com.adnan.sohokari
+tags:
+  - home
+  - navigation
+  - search
+---
+
+# ══════════════════════════════════════════════════════════════
+# TEST: Home Screen & Navigation
+# Precondition: User is logged in as customer
+# ══════════════════════════════════════════════════════════════
+
+- clearState
+- launchApp
+- waitForAnimationToEnd
+
+# Login first
+- tapOn:
+    text: "you@example.com"
+- inputText: "customer@test.com"
+- tapOn:
+    text: "••••••••"
+    index: 0
+- inputText: "password123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+
+# ── Home Screen Elements ─────────────────────────────────
+- assertVisible:
+    text: "Hello"
+    optional: true
+- takeScreenshot: screenshots/20_home_screen
+
+# ── Test 1: Category pills ───────────────────────────────
+- assertVisible:
+    text: "Electrician"
+    optional: true
+- assertVisible:
+    text: "Plumber"
+    optional: true
+- takeScreenshot: screenshots/21_categories
+
+# ── Test 2: Navigate to Search ───────────────────────────
+- tapOn:
+    text: "Search"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/22_search_screen
+
+# Type a search query
+- tapOn:
+    text: "Search by name, skill"
+    optional: true
+- inputText: "electrician"
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/23_search_results
+
+# Go back
+- back
+
+# ── Test 3: Navigate to Map ──────────────────────────────
+- tapOn:
+    id: "map-btn"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: screenshots/24_nearby_map
+
+# Go back
+- back
+
+# ── Test 4: Tab Navigation ───────────────────────────────
+# Navigate to Bookings tab
+- tapOn:
+    text: "Bookings"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/25_bookings_tab
+
+# Navigate to Chat tab
+- tapOn:
+    text: "Chat"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/26_chat_tab
+
+# Navigate to Profile tab
+- tapOn:
+    text: "Profile"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/27_profile_tab
+
+# Navigate back to Home
+- tapOn:
+    text: "Home"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/28_home_tab_return

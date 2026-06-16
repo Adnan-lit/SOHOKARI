@@ -35,6 +35,8 @@ public class Booking {
     private String notes;           // customer description of the problem
     private String address;         // service location
 
+    private Boolean isUrgent = false;
+
     private BookingStatus status = BookingStatus.REQUESTED;
 
     private String cancellationReason;

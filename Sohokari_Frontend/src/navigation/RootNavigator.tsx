@@ -19,6 +19,14 @@ import ReviewListScreen from "@screens/reviews/ReviewListScreen";
 import SearchScreen from "@screens/home/SearchScreen";
 import NearbyMapScreen from "@screens/providers/NearbyMapScreen";
 import AIChatScreen from "@screens/home/AIChatScreen";
+import EditProviderProfileScreen from "@screens/providers/EditProviderProfileScreen";
+import EarningsScreen from "@screens/providers/EarningsScreen";
+import ActivitySummaryScreen from "@screens/providers/ActivitySummaryScreen";
+import VerificationScreen from "@screens/providers/VerificationScreen";
+import EditCustomerProfileScreen from "@screens/profile/EditCustomerProfileScreen";
+import AdminDashboardScreen from "@screens/admin/AdminDashboardScreen";
+import LocationPickerScreen from "@screens/common/LocationPickerScreen";
+import InvoiceScreen from "@screens/bookings/InvoiceScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -46,6 +54,12 @@ export default function RootNavigator() {
             name="Auth"
             component={AuthNavigator}
             options={{ headerShown: false }}
+          />
+        ) : role === "ADMIN" ? (
+          <Stack.Screen
+            name="AdminDashboard"
+            component={AdminDashboardScreen}
+            options={{ title: "Admin Dashboard", headerShown: true }}
           />
         ) : role === "PROVIDER" ? (
           <Stack.Screen
@@ -105,6 +119,46 @@ export default function RootNavigator() {
           name="AIChat"
           component={AIChatScreen}
           options={{ title: "AI Assistant" }}
+        />
+        <Stack.Screen
+          name="EditProviderProfile"
+          component={EditProviderProfileScreen}
+          options={{ title: "Edit Profile" }}
+        />
+        <Stack.Screen
+          name="EditCustomerProfile"
+          component={EditCustomerProfileScreen}
+          options={{ title: "Edit Profile" }}
+        />
+        <Stack.Screen
+          name="Earnings"
+          component={EarningsScreen}
+          options={{ title: "Earnings Dashboard" }}
+        />
+        <Stack.Screen
+          name="ActivitySummary"
+          component={ActivitySummaryScreen}
+          options={{ title: "Activity Summary" }}
+        />
+        <Stack.Screen
+          name="Verification"
+          component={VerificationScreen}
+          options={{ title: "Identity Verification" }}
+        />
+        <Stack.Screen
+          name="AdminDashboard"
+          component={AdminDashboardScreen}
+          options={{ title: "Admin Dashboard" }}
+        />
+        <Stack.Screen
+          name="LocationPicker"
+          component={LocationPickerScreen}
+          options={{ title: "Pick Location", presentation: "modal" }}
+        />
+        <Stack.Screen
+          name="Invoice"
+          component={InvoiceScreen}
+          options={{ title: "Payment / Invoice" }}
         />
       </Stack.Navigator>
     </NavigationContainer>

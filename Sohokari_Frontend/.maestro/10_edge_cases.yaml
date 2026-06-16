@@ -1,0 +1,74 @@
+appId: com.adnan.sohokari
+tags:
+  - edge
+  - offline
+  - error
+---
+
+# ══════════════════════════════════════════════════════════════
+# TEST: Edge Cases & Offline Handling
+# ══════════════════════════════════════════════════════════════
+
+- clearState
+- launchApp
+- waitForAnimationToEnd
+
+# ── Test 1: Airplane mode login ──────────────────────────
+- setAirplaneMode:
+    value: true
+- tapOn:
+    text: "you@example.com"
+- inputText: "customer@test.com"
+- tapOn:
+    text: "••••••••"
+    index: 0
+- inputText: "password123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: screenshots/90_offline_login_error
+
+# ── Test 2: Restore connectivity ─────────────────────────
+- setAirplaneMode:
+    value: false
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn: "Sign In"
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: screenshots/91_connectivity_restored
+
+# ── Test 3: Rapid double-tap prevention ──────────────────
+- tapOn:
+    text: "Sign In"
+    repeat: 3
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/92_double_tap
+
+# ── Test 4: Back button from login ───────────────────────
+- back
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/93_back_from_login
+
+# ── Test 5: Special characters in input ──────────────────
+- launchApp
+- waitForAnimationToEnd
+- tapOn:
+    text: "you@example.com"
+- inputText: "<script>alert('xss')</script>"
+- tapOn:
+    text: "••••••••"
+    index: 0
+- inputText: "' OR 1=1 --"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/94_xss_sql_injection
+
+# ── Test 6: Long text input ──────────────────────────────
+- clearText
+- tapOn:
+    text: "you@example.com"
+- inputText: "a]@b.c"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/95_edge_email

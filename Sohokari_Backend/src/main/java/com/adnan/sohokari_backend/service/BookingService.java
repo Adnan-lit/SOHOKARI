@@ -22,6 +22,7 @@ public class BookingService {
     private final UserRepository userRepository;
     private final FcmService fcmService;
     private final RecommendationService recommendationService;
+    private final AuditService auditService;
 
     // ── Create booking ────────────────────────────────────────────────────
 
@@ -68,6 +69,7 @@ public class BookingService {
         booking.setScheduledTime(req.getScheduledTime());
         booking.setNotes(req.getNotes());
         booking.setAddress(req.getAddress());
+        booking.setIsUrgent(req.getIsUrgent() != null ? req.getIsUrgent() : false);
         booking.setStatus(BookingStatus.REQUESTED);
 
         bookingRepository.save(booking);
@@ -93,6 +95,7 @@ public class BookingService {
 
     public BookingResponse acceptBooking(String providerEmail, String bookingId) {
         Booking booking = getBookingForProvider(providerEmail, bookingId);
+        User providerUser = userRepository.findByEmail(providerEmail).orElse(null);
 
         if (booking.getStatus() != BookingStatus.REQUESTED) {
             throw new RuntimeException("Only REQUESTED bookings can be accepted");
@@ -103,10 +106,14 @@ public class BookingService {
         booking.setUpdatedAt(LocalDateTime.now());
         bookingRepository.save(booking);
 
+        auditService.log("BOOKING_ACCEPTED",
+                providerUser != null ? providerUser.getId() : null, providerEmail,
+                "Booking", bookingId, "Provider accepted booking");
+
         Provider provider = providerRepository.findById(booking.getProviderId()).orElse(null);
-        User providerUser = provider != null
-                ? userRepository.findById(provider.getUserId()).orElse(null)
-                : null;
+        if (providerUser == null && provider != null) {
+            providerUser = userRepository.findById(provider.getUserId()).orElse(null);
+        }
         fcmService.sendNotification(
                 booking.getCustomerId(),
                 "Booking accepted! 🎉",
@@ -170,6 +177,10 @@ public class BookingService {
         booking.setCompletedAt(LocalDateTime.now());
         booking.setUpdatedAt(LocalDateTime.now());
         bookingRepository.save(booking);
+
+        auditService.log("SERVICE_COMPLETED",
+                booking.getProviderUserId(), providerEmail,
+                "Booking", bookingId, "Service completed");
 
         // Update provider stats
         Provider provider = providerRepository.findById(booking.getProviderId())
@@ -315,6 +326,7 @@ public class BookingService {
         res.setScheduledTime(booking.getScheduledTime());
         res.setNotes(booking.getNotes());
         res.setAddress(booking.getAddress());
+        res.setIsUrgent(booking.getIsUrgent());
         res.setStatus(booking.getStatus());
         res.setCancellationReason(booking.getCancellationReason());
         res.setRejectionReason(booking.getRejectionReason());

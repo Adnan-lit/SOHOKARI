@@ -21,4 +21,6 @@ public class ProviderSummaryResponse {
     private List<String> badges;
     private String serviceArea;
     private Double distanceKm;   // populated in nearby search
+    private Double latitude;
+    private Double longitude;
 }

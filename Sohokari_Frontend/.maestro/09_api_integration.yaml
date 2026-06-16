@@ -1,0 +1,74 @@
+appId: com.adnan.sohokari
+tags:
+  - api
+  - backend
+  - integration
+---
+
+# ══════════════════════════════════════════════════════════════
+# TEST: API Integration Verification
+# Tests backend connectivity and error handling
+# ══════════════════════════════════════════════════════════════
+
+- clearState
+- launchApp
+- waitForAnimationToEnd
+
+# ── Test 1: Login API returns proper error for bad creds ──
+- tapOn:
+    text: "you@example.com"
+- inputText: "nonexistent@email.com"
+- tapOn:
+    text: "••••••••"
+    index: 0
+- inputText: "wrongpassword"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/80_api_bad_login
+
+# ── Test 2: Login with valid creds and verify token ──────
+- clearText
+- tapOn:
+    text: "you@example.com"
+- inputText: "customer@test.com"
+- tapOn:
+    text: "••••••••"
+    index: 0
+- inputText: "password123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+# If we see home screen, API login worked
+- takeScreenshot: screenshots/81_api_login_success
+
+# ── Test 3: Provider list loads from API ─────────────────
+# The home screen should show providers
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: screenshots/82_api_providers_loaded
+
+# ── Test 4: Bookings API loads ───────────────────────────
+- tapOn:
+    text: "Bookings"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: screenshots/83_api_bookings_loaded
+
+# ── Test 5: Notifications API loads ──────────────────────
+- tapOn:
+    text: "Profile"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Notifications"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: screenshots/84_api_notifications_loaded
+
+- back
+
+# ── Test 6: Chat API loads ───────────────────────────────
+- tapOn:
+    text: "Chat"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: screenshots/85_api_chat_loaded

@@ -11,4 +11,8 @@ public class UpdateProviderProfileRequest {
     private String serviceArea;
     private Double longitude;
     private Double latitude;
+    private String profilePhoto;
+    private List<String> portfolio;
+    private java.util.List<com.adnan.sohokari_backend.model.PaymentMethod> acceptedPaymentMethods;
+    private String paymentMobileNumber;
 }

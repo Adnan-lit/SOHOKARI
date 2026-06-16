@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,12 +10,16 @@ import {
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "react-native";
 import { providersApi } from "@api/providers";
 import { reviewsApi } from "@api/reviews";
 import type { ReviewResponse } from "@api/reviews";
 import { Colors } from "@theme/colors";
 import Button from "@components/common/Button";
+import ProviderBadge from "@components/common/ProviderBadge";
+import ImageGallery from "@components/common/ImageGallery";
 import { useAuthStore } from "@store/authStore";
+import { formatBDT } from "@store/i18n";
 import type {
   RootNavProp,
   RootStackParamList,
@@ -27,6 +31,8 @@ export default function ProviderProfileScreen() {
   const navigation = useNavigation<RootNavProp>();
   const { params } = useRoute<RoutePropType>();
   const { providerId } = params;
+  const [galleryVisible, setGalleryVisible] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
   const { userId, role } = useAuthStore();
 
   const { data: provider, isLoading } = useQuery({
@@ -61,6 +67,7 @@ export default function ProviderProfileScreen() {
     ? provider.serviceCategory.replace("_", " ")
     : "Service";
   const skills = Array.isArray(provider.skills) ? provider.skills : [];
+  const portfolio = Array.isArray(provider.portfolio) ? provider.portfolio : [];
   const badges = Array.isArray(reputation?.badges) ? reputation.badges : [];
   const safeReviews = Array.isArray(reviews) ? reviews : [];
 
@@ -69,7 +76,11 @@ export default function ProviderProfileScreen() {
       {/* Hero */}
       <View style={styles.hero}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{providerInitial}</Text>
+          {provider.profilePhoto ? (
+            <Image source={{ uri: provider.profilePhoto }} style={styles.avatarImg} />
+          ) : (
+            <Text style={styles.avatarText}>{providerInitial}</Text>
+          )}
         </View>
         <Text style={styles.name}>{providerName}</Text>
         <View style={styles.catBadge}>
@@ -143,8 +154,8 @@ export default function ProviderProfileScreen() {
                 receiverId: provider.userId,
               })
             }
-            style={{ flex: 1, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.primary }}
-            textStyle={{ color: Colors.primary }}
+            style={{ flex: 1, backgroundColor: Colors.surface, borderColor: Colors.primary }}
+            textStyle={{  }}
           />
         )}
         {provider.isAvailable && role === "CUSTOMER" && <View style={{ width: 12 }} />}
@@ -182,6 +193,27 @@ export default function ProviderProfileScreen() {
           </View>
         </View>
       )}
+
+      {/* Portfolio */}
+      {portfolio.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Portfolio</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.portfolioScroll}>
+            {portfolio.map((url, i) => (
+              <TouchableOpacity key={i} onPress={() => { setGalleryIndex(i); setGalleryVisible(true); }} activeOpacity={0.85}>
+                <Image source={{ uri: url }} style={styles.portfolioImage} />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
+      <ImageGallery
+        images={portfolio}
+        initialIndex={galleryIndex}
+        visible={galleryVisible}
+        onClose={() => setGalleryVisible(false)}
+      />
 
       {/* Service area */}
       {provider.serviceArea && (
@@ -223,9 +255,7 @@ export default function ProviderProfileScreen() {
           <Text style={styles.sectionTitle}>Badges</Text>
           <View style={styles.skillRow}>
             {badges.map((b, i) => (
-              <View key={i} style={styles.badge}>
-                <Text style={styles.badgeText}>🏅 {b}</Text>
-              </View>
+              <ProviderBadge key={i} badge={b} />
             ))}
           </View>
         </View>
@@ -298,7 +328,9 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: "rgba(255,255,255,0.3)",
     marginBottom: 12,
+    overflow: "hidden",
   },
+  avatarImg: { width: "100%", height: "100%" },
   avatarText: { fontSize: 32, color: Colors.white, fontWeight: "700" },
   name: {
     fontSize: 22,
@@ -366,13 +398,8 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   skillText: { fontSize: 13, color: Colors.primaryLight, fontWeight: "500" },
-  badge: {
-    backgroundColor: "#FFF8E1",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  badgeText: { fontSize: 12, color: Colors.warning, fontWeight: "600" },
+  portfolioScroll: { flexDirection: "row" },
+  portfolioImage: { width: 100, height: 100, borderRadius: 8, marginRight: 8, backgroundColor: "#EBF0F8" },
   reviewCard: {
     borderTopWidth: 0.5,
     borderTopColor: Colors.border,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ScrollView, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, ScrollView, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery }      from '@tanstack/react-query';
 import { Ionicons }      from '@expo/vector-icons';
@@ -8,6 +8,7 @@ import { reviewsApi }    from '@api/reviews';
 import type { ReviewResponse } from '@api/reviews';
 import { Colors }        from '@theme/colors';
 import Button            from '@components/common/Button';
+import ProviderBadge     from '@components/common/ProviderBadge';
 import type { RootNavProp } from '@app-types/navigation.types';
 
 /**
@@ -41,7 +42,11 @@ export default function MyProviderProfileTab() {
       {/* Hero */}
       <View style={styles.hero}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{provider.name.charAt(0).toUpperCase()}</Text>
+          {provider.profilePhoto ? (
+            <Image source={{ uri: provider.profilePhoto }} style={styles.avatarImg} />
+          ) : (
+            <Text style={styles.avatarText}>{provider.name.charAt(0).toUpperCase()}</Text>
+          )}
         </View>
         <Text style={styles.name}>{provider.name}</Text>
         <View style={styles.catBadge}>
@@ -70,6 +75,29 @@ export default function MyProviderProfileTab() {
         <View style={styles.stat}>
           <Text style={styles.statVal}>{provider.totalReviews ?? 0}</Text>
           <Text style={styles.statLabel}>Reviews</Text>
+        </View>
+      </View>
+
+      {/* Actions */}
+      <View style={styles.section}>
+        <Button
+          title="Edit Profile"
+          onPress={() => navigation.navigate('EditProviderProfile' as any)}
+          style={{ marginBottom: 12 }}
+          variant="outline"
+        />
+        <View style={styles.actionRow}>
+          <Button
+            title="Earnings"
+            onPress={() => navigation.navigate('Earnings' as any)}
+            style={{ flex: 1, marginRight: 6 }}
+            variant="outline"
+          />
+          <Button
+            title="Summary"
+            onPress={() => navigation.navigate('ActivitySummary' as any)}
+            style={{ flex: 1, marginLeft: 6 }}
+          />
         </View>
       </View>
 
@@ -118,9 +146,21 @@ export default function MyProviderProfileTab() {
           <Text style={styles.sectionTitle}>Badges</Text>
           <View style={styles.chipRow}>
             {provider.badges.map((b, i) => (
-              <View key={i} style={styles.badge}><Text style={styles.badgeText}>🏅 {b}</Text></View>
+              <ProviderBadge key={i} badge={b} />
             ))}
           </View>
+        </View>
+      )}
+
+      {/* Portfolio */}
+      {provider.portfolio && provider.portfolio.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Portfolio</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.portfolioScroll}>
+            {provider.portfolio.map((url, i) => (
+              <Image key={i} source={{ uri: url }} style={styles.portfolioImage} />
+            ))}
+          </ScrollView>
         </View>
       )}
 
@@ -165,7 +205,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   center:    { flex: 1, alignItems: 'center', justifyContent: 'center' },
   hero:      { backgroundColor: Colors.primary, alignItems: 'center', paddingTop: 32, paddingBottom: 28 },
-  avatar:    { width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: 'rgba(255,255,255,0.3)', marginBottom: 12 },
+  avatar:    { width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: 'rgba(255,255,255,0.3)', marginBottom: 12, overflow: 'hidden' },
+  avatarImg: { width: '100%', height: '100%' },
   avatarText:{ fontSize: 32, color: Colors.white, fontWeight: '700' },
   name:      { fontSize: 22, fontWeight: '700', color: Colors.white, marginBottom: 8 },
   catBadge:  { backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 4, marginBottom: 10 },
@@ -178,6 +219,7 @@ const styles = StyleSheet.create({
   statVal:   { fontSize: 18, fontWeight: '700', color: Colors.primary },
   statLabel: { fontSize: 11, color: Colors.textMuted, marginTop: 2 },
   statDivider:{ width: 1, backgroundColor: Colors.border },
+  actionRow:  { flexDirection: 'row', justifyContent: 'space-between' },
   section:    { backgroundColor: Colors.surface, marginHorizontal: 16, marginTop: 12, borderRadius: 14, padding: 16 },
   sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionTitle:{ fontSize: 15, fontWeight: '700', color: Colors.text, marginBottom: 12 },
@@ -186,8 +228,8 @@ const styles = StyleSheet.create({
   chipRow:    { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip:       { backgroundColor: '#EBF0F8', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 },
   chipText:   { fontSize: 13, color: Colors.primaryLight, fontWeight: '500' },
-  badge:      { backgroundColor: '#FFF8E1', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
-  badgeText:  { fontSize: 12, color: Colors.warning, fontWeight: '600' },
+  portfolioScroll: { flexDirection: 'row' },
+  portfolioImage: { width: 100, height: 100, borderRadius: 8, marginRight: 8, backgroundColor: '#EBF0F8' },
   reviewCard: { borderTopWidth: 0.5, borderTopColor: Colors.border, paddingTop: 12, marginTop: 8 },
   reviewHeader:{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
   reviewAuthor:{ fontSize: 13, fontWeight: '600', color: Colors.text },

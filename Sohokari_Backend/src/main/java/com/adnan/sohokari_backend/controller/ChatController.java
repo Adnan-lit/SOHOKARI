@@ -62,6 +62,15 @@ public class ChatController {
         return ResponseEntity.ok(ApiResponse.ok("Conversations", res));
     }
 
+    @PutMapping("/api/v1/chats/{bookingId}/read")
+    @ResponseBody
+    public ResponseEntity<ApiResponse<Void>> markAsRead(
+            Principal principal,
+            @PathVariable String bookingId) {
+        chatService.markAsRead(principal.getName(), bookingId);
+        return ResponseEntity.ok(ApiResponse.ok("Messages marked as read", null));
+    }
+
     @DeleteMapping("/api/v1/chats/{messageId}")
     @ResponseBody
     public ResponseEntity<ApiResponse<Void>> deleteMessage(

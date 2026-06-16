@@ -14,6 +14,8 @@ import { useRoute, RouteProp } from "@react-navigation/native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import dayjs from "dayjs";
+import isToday from "dayjs/plugin/isToday";
+dayjs.extend(isToday);
 import { Client } from "@stomp/stompjs";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Notifications from "expo-notifications";
@@ -50,6 +52,18 @@ export default function ChatRoomScreen() {
     if (initialMessages) setMessages(initialMessages);
   }, [initialMessages]);
 
+  // Mark messages as read when opening the conversation
+  useEffect(() => {
+    chatApi.markAsRead(params.bookingId).catch(() => {});
+  }, [params.bookingId]);
+
+  // Invalidate conversations list when leaving the chat
+  useEffect(() => {
+    return () => {
+      qc.invalidateQueries({ queryKey: ['conversations'] });
+    };
+  }, [qc]);
+
   // Listen for foreground push notifications to trigger chat reload
   useEffect(() => {
     const subscription = Notifications.addNotificationReceivedListener((notification) => {
@@ -76,9 +90,9 @@ export default function ChatRoomScreen() {
         reconnectDelay: 5000,
         forceBinaryWSFrames: true,
         appendMissingNULLonIncoming: true,
-        debug: (str) => console.log('STOMP DEBUG:', str),
-        onWebSocketError: (evt) => console.error('STOMP WS ERROR:', evt),
-        onStompError: (frame) => console.error('STOMP ERROR FRAME:', frame.headers['message'], frame.body),
+        debug: () => {},
+        onWebSocketError: () => {},
+        onStompError: () => {},
         onConnect: () => {
           setConnected(true);
           client.subscribe(`/user/queue/messages`, (frame) => {
@@ -156,28 +170,54 @@ export default function ChatRoomScreen() {
 
   const renderMessage = ({ item }: { item: ChatMessageResponse }) => {
     const isMe = item.senderId === userId;
+    const msgDate = dayjs(item.sentAt).format('DD MMM YYYY');
+    const prevItem = messages[messages.indexOf(item) + 1]; // inverted list
+    const prevDate = prevItem ? dayjs(prevItem.sentAt).format('DD MMM YYYY') : null;
+    const showDate = msgDate !== prevDate;
+
     return (
-      <View
-        style={[styles.msgRow, isMe ? styles.msgRowRight : styles.msgRowLeft]}
-      >
-        {!isMe && (
-          <View style={styles.msgAvatar}>
-            <Text style={styles.msgAvatarText}>
-              {params.participantName.charAt(0)}
-            </Text>
+      <>
+        {showDate && (
+          <View style={styles.dateDivider}>
+            <View style={styles.datePill}>
+              <Text style={styles.dateText}>
+                {dayjs(item.sentAt).isToday?.() ? 'Today' : msgDate}
+              </Text>
+            </View>
           </View>
         )}
         <View
-          style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}
+          style={[styles.msgRow, isMe ? styles.msgRowRight : styles.msgRowLeft]}
         >
-          <Text style={[styles.bubbleText, isMe && styles.bubbleTextMe]}>
-            {item.content}
-          </Text>
-          <Text style={[styles.bubbleTime, isMe && styles.bubbleTimeMe]}>
-            {dayjs(item.sentAt).format("HH:mm")}
-          </Text>
+          {!isMe && (
+            <View style={styles.msgAvatar}>
+              <Text style={styles.msgAvatarText}>
+                {params.participantName.charAt(0)}
+              </Text>
+            </View>
+          )}
+          <View
+            style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}
+          >
+            <Text style={[styles.bubbleText, isMe && styles.bubbleTextMe]}>
+              {item.content}
+            </Text>
+            <View style={styles.bubbleMeta}>
+              <Text style={[styles.bubbleTime, isMe && styles.bubbleTimeMe]}>
+                {dayjs(item.sentAt).format("HH:mm")}
+              </Text>
+              {isMe && (
+                <Ionicons
+                  name="checkmark-done"
+                  size={14}
+                  color="rgba(255,255,255,0.65)"
+                  style={{ marginLeft: 3 }}
+                />
+              )}
+            </View>
+          </View>
         </View>
-      </View>
+      </>
     );
   };
 
@@ -254,7 +294,7 @@ export default function ChatRoomScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+  container: { flex: 1, backgroundColor: '#ECE5DD' },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
 
   connecting: {
@@ -313,6 +353,21 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   bubbleTimeMe: { color: "rgba(255,255,255,0.6)" },
+  bubbleMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: 3,
+  },
+
+  dateDivider: { alignItems: 'center', marginVertical: 12 },
+  datePill: {
+    backgroundColor: 'rgba(0,0,0,0.08)',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+  },
+  dateText: { fontSize: 11, color: Colors.textSecondary, fontWeight: '600' },
 
   inputSafeArea: {
     backgroundColor: Colors.surface,

@@ -95,5 +95,50 @@ public class MongoConfig {
                 Indexes.ascending("providerId"),
                 new IndexOptions().name("review_providerId")
         );
+
+        // ── payments collection ───────────────────────────────────────────────
+        MongoCollection<Document> payments = db.getCollection("payments");
+
+        payments.createIndex(
+                Indexes.ascending("bookingId"),
+                new IndexOptions().unique(true).name("payment_bookingId_unique")
+        );
+        payments.createIndex(
+                Indexes.ascending("providerId"),
+                new IndexOptions().name("payment_providerId")
+        );
+        payments.createIndex(
+                Indexes.ascending("customerId"),
+                new IndexOptions().name("payment_customerId")
+        );
+
+        // ── notifications collection ──────────────────────────────────────────
+        MongoCollection<Document> notifications = db.getCollection("notifications");
+
+        notifications.createIndex(
+                Indexes.compoundIndex(
+                        Indexes.ascending("userId"),
+                        Indexes.descending("createdAt")
+                ),
+                new IndexOptions().name("notif_userId_createdAt")
+        );
+        notifications.createIndex(
+                Indexes.compoundIndex(
+                        Indexes.ascending("userId"),
+                        Indexes.ascending("read")
+                ),
+                new IndexOptions().name("notif_userId_read")
+        );
+
+        // ── chat_messages collection ──────────────────────────────────────────
+        MongoCollection<Document> chatMessages = db.getCollection("chat_messages");
+
+        chatMessages.createIndex(
+                Indexes.compoundIndex(
+                        Indexes.ascending("chatId"),
+                        Indexes.descending("timestamp")
+                ),
+                new IndexOptions().name("chat_chatId_timestamp")
+        );
     }
 }

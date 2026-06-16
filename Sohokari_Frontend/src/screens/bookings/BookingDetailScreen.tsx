@@ -8,6 +8,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import dayjs        from 'dayjs';
 import Toast        from 'react-native-toast-message';
+import * as Print   from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import { bookingsApi }  from '@api/bookings';
 import { reviewsApi }   from '@api/reviews';
 import { useAuthStore } from '@store/authStore';
@@ -57,6 +59,53 @@ export default function BookingDetailScreen() {
   const isCustomer = role === 'CUSTOMER';
   const status     = booking.status;
 
+  const generateInvoice = async () => {
+    try {
+      const html = `
+        <html>
+          <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+            <style>
+              body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #333; }
+              .header { text-align: center; margin-bottom: 40px; }
+              .title { font-size: 28px; font-weight: bold; color: #2C64E3; margin-bottom: 10px; }
+              .subtitle { font-size: 16px; color: #666; }
+              .details { margin-bottom: 30px; line-height: 1.6; }
+              .row { display: flex; justify-content: space-between; border-bottom: 1px solid #EEE; padding: 10px 0; }
+              .label { font-weight: bold; color: #555; }
+              .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #999; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <div class="title">Sohokari</div>
+              <div class="subtitle">Service Invoice</div>
+            </div>
+            
+            <div class="details">
+              <div class="row"><span class="label">Booking ID:</span> <span>${booking.bookingId}</span></div>
+              <div class="row"><span class="label">Date:</span> <span>${dayjs(booking.scheduledDate).format('DD MMM YYYY')} at ${String(booking.scheduledTime).substring(0, 5)}</span></div>
+              <div class="row"><span class="label">Service:</span> <span>${booking.serviceCategory?.replace('_', ' ')}</span></div>
+              <div class="row"><span class="label">Provider:</span> <span>${booking.providerName}</span></div>
+              <div class="row"><span class="label">Customer:</span> <span>${booking.customerName}</span></div>
+              <div class="row"><span class="label">Address:</span> <span>${booking.address}</span></div>
+              <div class="row"><span class="label">Status:</span> <span>${booking.status}</span></div>
+            </div>
+            
+            <div class="footer">
+              Thank you for using Sohokari!
+            </div>
+          </body>
+        </html>
+      `;
+
+      const { uri } = await Print.printToFileAsync({ html });
+      await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+    } catch (err: any) {
+      Toast.show({ type: 'error', text1: 'Failed to generate invoice', text2: err.message });
+    }
+  };
+
   // Role-aware action buttons
   const actions = [];
   if (isProvider) {
@@ -97,6 +146,15 @@ export default function BookingDetailScreen() {
     }
   }
 
+  // Payment / Invoice button (both parties, when completed)
+  if (status === 'COMPLETED' || status === 'REVIEWED') {
+    actions.push(
+      <Button key="invoice" title="💰 Payment / Invoice"
+        onPress={() => navigation.navigate('Invoice', { bookingId: booking.bookingId })}
+        style={{ flex: 1 }} />,
+    );
+  }
+
   // Timeline
   const timeline = [
     { step: 'REQUESTED',   label: 'Requested',   icon: 'time-outline'             },
@@ -111,7 +169,15 @@ export default function BookingDetailScreen() {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Status banner */}
       <View style={styles.banner}>
-        <StatusBadge status={status} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <StatusBadge status={status} />
+          {booking.isUrgent && (
+            <View style={styles.urgentBadge}>
+              <Ionicons name="flash" size={12} color={Colors.white} />
+              <Text style={styles.urgentText}>URGENT</Text>
+            </View>
+          )}
+        </View>
         <Text style={styles.bannerDate}>
           {booking.scheduledDate ? dayjs(booking.scheduledDate).format('DD MMM YYYY') : ''}{' '}
           {booking.scheduledTime ? `at ${String(booking.scheduledTime).substring(0, 5)}` : ''}
@@ -214,6 +280,8 @@ const styles = StyleSheet.create({
   center:    { flex: 1, alignItems: 'center', justifyContent: 'center' },
   banner:    { backgroundColor: Colors.surface, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderBottomWidth: 0.5, borderBottomColor: Colors.border },
   bannerDate:{ fontSize: 13, color: Colors.textSecondary },
+  urgentBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.error, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, gap: 2 },
+  urgentText:  { color: Colors.white, fontSize: 10, fontWeight: '700' },
   timeline:  { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, paddingHorizontal: 16, paddingVertical: 20, marginTop: 8, marginHorizontal: 16, borderRadius: 14 },
   timelineStep:    { alignItems: 'center', gap: 6 },
   timelineDot:     { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.border, alignItems: 'center', justifyContent: 'center' },

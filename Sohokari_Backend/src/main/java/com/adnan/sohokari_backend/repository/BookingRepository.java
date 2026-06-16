@@ -34,6 +34,9 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
 
     // For badge/reputation calculations
     long countByProviderIdAndStatus(String providerId, BookingStatus status);
+    
+    // For earnings calculation
+    long countByProviderIdAndStatusAndUpdatedAtAfter(String providerId, BookingStatus status, java.time.LocalDateTime date);
 
     // Check if customer booked this provider (for verified review)
     @Query("{ 'customerId': ?0, 'providerId': ?1, 'status': 'COMPLETED' }")

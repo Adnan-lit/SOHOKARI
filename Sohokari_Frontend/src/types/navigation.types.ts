@@ -16,7 +16,7 @@ export type CustomerTabParamList = {
   Bookings:      undefined;
   Chat:          undefined;
   Notifications: undefined;
-  Profile:       undefined;
+  Profile:       { pickedLocation?: { latitude: number; longitude: number } } | undefined;
 };
 
 // ─── Provider Tabs ────────────────────────────────────────
@@ -44,6 +44,14 @@ export type RootStackParamList = {
   Search:          undefined;
   NearbyMap:       undefined;
   AIChat:          undefined;
+  EditProviderProfile: { pickedLocation?: { latitude: number; longitude: number } } | undefined;
+  EditCustomerProfile: undefined;
+  Verification:    undefined;
+  AdminDashboard:  undefined;
+  ActivitySummary: undefined;
+  Earnings:        undefined;
+  Invoice:         { bookingId: string };
+  LocationPicker:  { returnScreen: string; currentLat?: number; currentLng?: number };
 };
 
 // ─── Nav prop convenience types ───────────────────────────

@@ -1,0 +1,71 @@
+appId: com.adnan.sohokari
+tags:
+  - auth
+  - registration
+---
+
+# ══════════════════════════════════════════════════════════════
+# TEST: Customer Registration Flow
+# ══════════════════════════════════════════════════════════════
+
+- clearState
+- launchApp
+- waitForAnimationToEnd
+
+# Navigate to registration
+- tapOn: "Create Account"
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/10_register_screen
+
+# ── Test 1: Empty form validation ─────────────────────────
+- tapOn: "Create Account"
+- assertVisible: "Name is required"
+- takeScreenshot: screenshots/11_register_empty_validation
+
+# ── Test 2: Short password ────────────────────────────────
+- tapOn:
+    text: "Rahim Uddin"
+- inputText: "Test User"
+- tapOn:
+    text: "you@example.com"
+- inputText: "newuser@test.com"
+- tapOn:
+    text: "01712345678"
+- inputText: "01712345678"
+- tapOn:
+    text: "••••••••"
+    index: 0
+- inputText: "123"
+- tapOn:
+    text: "••••••••"
+    index: 1
+- inputText: "123"
+- tapOn: "Create Account"
+- assertVisible:
+    text: "Password must be at least 6 characters"
+    optional: true
+- takeScreenshot: screenshots/12_register_short_password
+
+# ── Test 3: Password mismatch ────────────────────────────
+- clearText
+- tapOn:
+    text: "••••••••"
+    index: 0
+- inputText: "password123"
+- tapOn:
+    text: "••••••••"
+    index: 1
+- inputText: "differentpassword"
+- tapOn: "Create Account"
+- assertVisible:
+    text: "Passwords do not match"
+    optional: true
+- takeScreenshot: screenshots/13_register_password_mismatch
+
+# ── Test 4: Navigation to login ────────────────────────────
+- tapOn:
+    text: "Already have an account?"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible: "Sign In"
+- takeScreenshot: screenshots/14_back_to_login

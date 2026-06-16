@@ -24,6 +24,7 @@ public class BookingResponse {
     private LocalTime scheduledTime;
     private String notes;
     private String address;
+    private Boolean isUrgent;
 
     private BookingStatus status;
     private String cancellationReason;

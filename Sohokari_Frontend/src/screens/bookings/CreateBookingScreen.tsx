@@ -7,11 +7,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
+  Switch,
+  Modal,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
+import * as Location from "expo-location";
+import { Calendar } from "react-native-calendars";
 import { providersApi } from "@api/providers";
 import { bookingsApi } from "@api/bookings";
 import { Colors } from "@theme/colors";
@@ -31,6 +35,7 @@ interface FormState {
   scheduledTime: string;
   address: string;
   notes: string;
+  isUrgent: boolean;
 }
 interface FormErrors {
   [k: string]: string | undefined;
@@ -60,12 +65,23 @@ export default function CreateBookingScreen() {
     queryFn: () => providersApi.getById(params.providerId),
   });
 
+  const { data: scheduling } = useQuery({
+    queryKey: ["scheduling", params.providerId],
+    queryFn: () => providersApi.getSchedulingSuggestions(params.providerId),
+  });
+
+  const getBusySlotsForDate = (dateStr: string) => {
+    if (!scheduling || !scheduling.busySlots) return [];
+    return scheduling.busySlots.filter(s => s.date === dateStr).map(s => s.time.substring(0, 5) + ":00");
+  };
+
   const [form, setForm] = useState<FormState>({
     serviceCategory: provider?.serviceCategory ?? "",
     scheduledDate: "",
     scheduledTime: "",
     address: "",
     notes: "",
+    isUrgent: false,
   });
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -75,8 +91,61 @@ export default function CreateBookingScreen() {
       setForm(prev => ({ ...prev, serviceCategory: provider.serviceCategory }));
     }
   }, [provider?.serviceCategory]);
-  const [showCats, setShowCats] = useState(false);
+  
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [showSlots, setShowSlots] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
+
+  const formatTime12Hour = (timeStr: string) => {
+    const [h, m] = timeStr.split(':');
+    const hours = parseInt(h, 10);
+    const suffix = hours >= 12 ? 'PM' : 'AM';
+    const displayHour = hours % 12 || 12;
+    return `${displayHour}:${m} ${suffix}`;
+  };
+
+  const isSlotPassedToday = (slot: string, dateStr: string) => {
+    if (!dateStr) return false;
+    const now = new Date();
+    const todayStr = now.getFullYear() + '-' + 
+                     String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                     String(now.getDate()).padStart(2, '0');
+                     
+    if (dateStr === todayStr) {
+      const [slotH, slotM] = slot.split(':').map(Number);
+      const currentH = now.getHours();
+      const currentM = now.getMinutes();
+      if (slotH < currentH || (slotH === currentH && slotM <= currentM)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const handleUseCurrentLocation = async () => {
+    setIsLocating(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Toast.show({ type: "error", text1: "Permission denied", text2: "Allow location access to use this feature." });
+        return;
+      }
+      const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const geocode = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+      if (geocode.length > 0) {
+        const place = geocode[0];
+        const addrParts = [place.name, place.street, place.city, place.region].filter(Boolean);
+        set("address")(addrParts.join(", "));
+      }
+    } catch (err: any) {
+      Toast.show({ type: "error", text1: "Location Error", text2: "Could not fetch your location." });
+    } finally {
+      setIsLocating(false);
+    }
+  };
 
   const set = (key: keyof FormState) => (val: string) =>
     setForm((prev) => ({ ...prev, [key]: val }));
@@ -109,6 +178,7 @@ export default function CreateBookingScreen() {
         scheduledTime: form.scheduledTime,
         address: form.address.trim(),
         notes: form.notes.trim() || undefined,
+        isUrgent: form.isUrgent,
       }),
     onSuccess: (booking) => {
       qc.invalidateQueries({ queryKey: ["myBookings"] });
@@ -162,90 +232,66 @@ export default function CreateBookingScreen() {
         )}
 
         <View style={styles.card}>
-          {/* Service Category */}
+          {/* Service Category (Locked) */}
           <Text style={styles.label}>Service Category</Text>
-          <TouchableOpacity
-            style={[
-              styles.picker,
-              errors.serviceCategory ? styles.pickerError : styles.pickerNormal,
-            ]}
-            onPress={() => setShowCats((p) => !p)}
-          >
+          <View style={[styles.picker, styles.pickerDisabled]}>
             <Ionicons
               name="construct-outline"
               size={18}
               color={Colors.textMuted}
               style={{ marginRight: 8 }}
             />
-            <Text
-              style={
-                form.serviceCategory
-                  ? styles.pickerVal
-                  : styles.pickerPlaceholder
-              }
-            >
+            <Text style={styles.pickerVal}>
               {form.serviceCategory
-                ? SERVICE_CATEGORIES.find((c) => c.key === form.serviceCategory)
-                    ?.label
+                ? SERVICE_CATEGORIES.find((c) => c.key === form.serviceCategory)?.label
                 : "Select category"}
             </Text>
-            <Ionicons
-              name={showCats ? "chevron-up" : "chevron-down"}
-              size={16}
-              color={Colors.textMuted}
-            />
+            <Ionicons name="lock-closed" size={16} color={Colors.textMuted} />
+          </View>
+          <Text style={styles.helperText}>Category is locked to this provider's specialty.</Text>
+
+          {/* Date Picker fallback */}
+          <Text style={styles.label}>Scheduled Date</Text>
+          <TouchableOpacity
+            style={[styles.picker, errors.scheduledDate ? styles.pickerError : styles.pickerNormal, { marginBottom: 16 }]}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Ionicons name="calendar-outline" size={18} color={Colors.textMuted} style={{ marginRight: 8 }} />
+            <Text style={form.scheduledDate ? styles.pickerVal : styles.pickerPlaceholder}>
+              {form.scheduledDate || "Select Date"}
+            </Text>
           </TouchableOpacity>
-          {errors.serviceCategory && (
-            <Text style={styles.errorText}>{errors.serviceCategory}</Text>
-          )}
+          {errors.scheduledDate && <Text style={styles.errorText}>{errors.scheduledDate}</Text>}
 
-          {showCats && (
-            <View style={styles.dropdown}>
-              {SERVICE_CATEGORIES.map((cat) => (
-                <TouchableOpacity
-                  key={cat.key}
-                  style={[
-                    styles.dropItem,
-                    form.serviceCategory === cat.key && styles.dropItemActive,
-                  ]}
-                  onPress={() => {
-                    set("serviceCategory")(cat.key);
-                    setShowCats(false);
+          {/* Calendar Modal */}
+          <Modal visible={showDatePicker} transparent animationType="fade">
+            <TouchableOpacity 
+              style={styles.modalOverlay} 
+              activeOpacity={1} 
+              onPress={() => setShowDatePicker(false)}
+            >
+              <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
+                <Calendar
+                  minDate={new Date().toISOString().split('T')[0]}
+                  onDayPress={(day: any) => {
+                    set("scheduledDate")(day.dateString);
+                    set("scheduledTime")(""); // Reset time on date change
+                    setShowDatePicker(false);
                   }}
-                >
-                  <Ionicons
-                    name={cat.icon as any}
-                    size={16}
-                    color={
-                      form.serviceCategory === cat.key
-                        ? Colors.white
-                        : Colors.primary
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.dropItemText,
-                      form.serviceCategory === cat.key &&
-                        styles.dropItemTextActive,
-                    ]}
-                  >
-                    {cat.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-
-          {/* Date */}
-          <FormInput
-            label="Scheduled Date"
-            value={form.scheduledDate}
-            onChangeText={set("scheduledDate")}
-            error={errors.scheduledDate}
-            iconName="calendar-outline"
-            placeholder="YYYY-MM-DD"
-            keyboardType="numbers-and-punctuation"
-          />
+                  theme={{
+                    todayTextColor: Colors.primary,
+                    selectedDayBackgroundColor: Colors.primary,
+                    arrowColor: Colors.primary,
+                  }}
+                  markedDates={
+                    form.scheduledDate ? {
+                      [form.scheduledDate]: { selected: true, selectedColor: Colors.primary }
+                    } : {}
+                  }
+                />
+              </View>
+            </TouchableOpacity>
+          </Modal>
 
           {/* Time slot */}
           <Text style={styles.label}>Scheduled Time</Text>
@@ -254,7 +300,13 @@ export default function CreateBookingScreen() {
               styles.picker,
               errors.scheduledTime ? styles.pickerError : styles.pickerNormal,
             ]}
-            onPress={() => setShowSlots((p) => !p)}
+            onPress={() => {
+              if (!form.scheduledDate) {
+                Toast.show({ type: "info", text1: "Select Date", text2: "Please select a date first." });
+                return;
+              }
+              setShowSlots((p) => !p);
+            }}
           >
             <Ionicons
               name="time-outline"
@@ -268,7 +320,7 @@ export default function CreateBookingScreen() {
               }
             >
               {form.scheduledTime
-                ? form.scheduledTime.substring(0, 5)
+                ? formatTime12Hour(form.scheduledTime)
                 : "Select time slot"}
             </Text>
             <Ionicons
@@ -283,12 +335,21 @@ export default function CreateBookingScreen() {
 
           {showSlots && (
             <View style={styles.slotGrid}>
-              {TIME_SLOTS.map((slot) => (
+              {TIME_SLOTS.map((slot) => {
+                const isBusy = getBusySlotsForDate(form.scheduledDate).includes(slot);
+                const isPassed = isSlotPassedToday(slot, form.scheduledDate);
+                const isUnavailable = isBusy || isPassed;
+
+                if (isPassed) return null; // Hide past slots entirely for today
+
+                return (
                 <TouchableOpacity
                   key={slot}
+                  disabled={isUnavailable}
                   style={[
                     styles.slotChip,
                     form.scheduledTime === slot && styles.slotChipActive,
+                    isUnavailable && styles.slotChipBusy,
                   ]}
                   onPress={() => {
                     set("scheduledTime")(slot);
@@ -299,25 +360,37 @@ export default function CreateBookingScreen() {
                     style={[
                       styles.slotText,
                       form.scheduledTime === slot && styles.slotTextActive,
+                      isUnavailable && styles.slotTextBusy,
                     ]}
                   >
-                    {slot.substring(0, 5)}
+                    {formatTime12Hour(slot)} {isBusy && "(Busy)"}
                   </Text>
                 </TouchableOpacity>
-              ))}
+              )})}
             </View>
           )}
 
           {/* Address */}
-          <FormInput
-            label="Service Address"
-            value={form.address}
-            onChangeText={set("address")}
-            error={errors.address}
-            iconName="location-outline"
-            placeholder="House 12, Road 5, Dhanmondi, Dhaka"
-            multiline
-          />
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginBottom: 8 }}>
+            <View style={{ flex: 1 }}>
+              <FormInput
+                label="Service Address"
+                value={form.address}
+                onChangeText={set("address")}
+                error={errors.address}
+                iconName="location-outline"
+                placeholder="House 12, Road 5, Dhaka"
+                multiline
+              />
+            </View>
+            <TouchableOpacity 
+              style={styles.locationBtn} 
+              onPress={handleUseCurrentLocation}
+              disabled={isLocating}
+            >
+              <Ionicons name="navigate" size={20} color={Colors.white} />
+            </TouchableOpacity>
+          </View>
 
           {/* Notes */}
           <FormInput
@@ -328,6 +401,20 @@ export default function CreateBookingScreen() {
             placeholder="Describe the problem briefly…"
             multiline
           />
+
+          {/* Urgent Toggle */}
+          <View style={styles.toggleRow}>
+            <View style={styles.toggleTextWrap}>
+              <Text style={styles.label}>Urgent Booking</Text>
+              <Text style={styles.toggleHint}>Provider will be notified immediately</Text>
+            </View>
+            <Switch
+              value={form.isUrgent}
+              onValueChange={(val) => setForm((prev) => ({ ...prev, isUrgent: val }))}
+              trackColor={{ false: Colors.border, true: Colors.error }}
+              thumbColor={Colors.white}
+            />
+          </View>
 
           <Button
             title="Confirm Booking"
@@ -399,27 +486,11 @@ const styles = StyleSheet.create({
   },
   pickerNormal: { borderColor: Colors.border },
   pickerError: { borderColor: Colors.error },
+  pickerDisabled: { backgroundColor: Colors.background, borderColor: Colors.border, marginBottom: 12 },
   pickerPlaceholder: { flex: 1, fontSize: 15, color: Colors.textMuted },
   pickerVal: { flex: 1, fontSize: 15, color: Colors.text },
+  helperText: { fontSize: 12, color: Colors.textMuted, marginTop: -8, marginBottom: 16, paddingLeft: 4 },
   errorText: { fontSize: 12, color: Colors.error, marginBottom: 12 },
-  dropdown: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 10,
-    overflow: "hidden",
-    marginBottom: 16,
-  },
-  dropItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    padding: 12,
-    borderBottomWidth: 0.5,
-    borderBottomColor: Colors.border,
-  },
-  dropItemActive: { backgroundColor: Colors.accent },
-  dropItemText: { fontSize: 14, color: Colors.text },
-  dropItemTextActive: { color: Colors.white, fontWeight: "600" },
   slotGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -437,6 +508,45 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
   },
+  slotChipBusy: {
+    backgroundColor: Colors.surface,
+    borderColor: Colors.border,
+    opacity: 0.5,
+  },
   slotText: { fontSize: 13, color: Colors.text },
   slotTextActive: { color: Colors.white, fontWeight: "600" },
+  slotTextBusy: { color: Colors.textMuted, textDecorationLine: "line-through" },
+  toggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  toggleTextWrap: { flex: 1 },
+  toggleHint: { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: Colors.surface,
+    width: "90%",
+    borderRadius: 16,
+    padding: 16,
+    elevation: 4,
+  },
+  locationBtn: {
+    backgroundColor: Colors.primary,
+    height: 52, // Match FormInput height
+    width: 52,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24, // Matches the FormInput marginBottom
+  },
 });

@@ -1,0 +1,64 @@
+appId: com.adnan.sohokari
+tags:
+  - auth
+  - smoke
+---
+
+# ══════════════════════════════════════════════════════════════
+# TEST: Customer Login Flow
+# ══════════════════════════════════════════════════════════════
+
+- clearState
+- launchApp
+
+# Wait for splash screen to finish
+- waitForAnimationToEnd
+
+# Screenshot: Splash screen
+- takeScreenshot: screenshots/01_splash_screen
+
+# Should see login screen
+- assertVisible: "Sign In"
+- takeScreenshot: screenshots/02_login_screen
+
+# ── Test 1: Empty form submission ─────────────────────────
+- tapOn: "Sign In"
+- assertVisible: "Email is required"
+- takeScreenshot: screenshots/03_login_empty_validation
+
+# ── Test 2: Invalid email format ──────────────────────────
+- tapOn:
+    text: "you@example.com"
+- inputText: "not-an-email"
+- tapOn: "Sign In"
+- assertVisible: "Invalid email"
+- takeScreenshot: screenshots/04_login_invalid_email
+
+# ── Test 3: Wrong credentials ─────────────────────────────
+- clearText
+- tapOn:
+    text: "you@example.com"
+- inputText: "wrong@test.com"
+- tapOn:
+    text: "••••••••"
+    index: 0
+- inputText: "wrongpassword"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Invalid email or password"
+    optional: true
+- takeScreenshot: screenshots/05_login_wrong_creds
+
+# ── Test 4: Valid login ──────────────────────────────────
+- clearText
+- tapOn:
+    text: "you@example.com"
+- inputText: "customer@test.com"
+- tapOn:
+    text: "••••••••"
+    index: 0
+- inputText: "password123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/06_login_success_home

@@ -1,0 +1,101 @@
+appId: com.adnan.sohokari
+tags:
+  - profile
+  - crud
+---
+
+# ══════════════════════════════════════════════════════════════
+# TEST: Profile CRUD Flow
+# Precondition: User is logged in as customer
+# ══════════════════════════════════════════════════════════════
+
+- clearState
+- launchApp
+- waitForAnimationToEnd
+
+# Login
+- tapOn:
+    text: "you@example.com"
+- inputText: "customer@test.com"
+- tapOn:
+    text: "••••••••"
+    index: 0
+- inputText: "password123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+
+# Navigate to Profile
+- tapOn:
+    text: "Profile"
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/30_profile_screen
+
+# ── Test 1: Profile displays user info ───────────────────
+- assertVisible:
+    text: "Customer"
+    optional: true
+- takeScreenshot: screenshots/31_profile_info
+
+# ── Test 2: Edit profile ─────────────────────────────────
+- tapOn:
+    text: "Edit Profile"
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/32_edit_profile
+
+# Update name
+- tapOn:
+    text: "Enter your name"
+    optional: true
+- clearText
+- inputText: "Updated Name"
+- takeScreenshot: screenshots/33_edit_profile_filled
+
+# Save changes
+- tapOn: "Save Changes"
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/34_profile_updated
+
+# ── Test 3: Language switcher ────────────────────────────
+- scrollUntilVisible:
+    element:
+      text: "বাংলা ভাষায় পরিবর্তন"
+      optional: true
+    direction: DOWN
+    timeout: 5000
+- tapOn:
+    text: "বাংলা ভাষায় পরিবর্তন"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/35_bangla_language
+
+# Switch back to English
+- scrollUntilVisible:
+    element:
+      text: "Switch to English"
+      optional: true
+    direction: DOWN
+    timeout: 5000
+- tapOn:
+    text: "Switch to English"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/36_english_language
+
+# ── Test 4: Logout ───────────────────────────────────────
+- scrollUntilVisible:
+    element:
+      text: "Sign Out"
+      optional: true
+    direction: DOWN
+    timeout: 5000
+- tapOn:
+    text: "Sign Out"
+    optional: true
+- waitForAnimationToEnd
+# Confirm alert dialog
+- tapOn:
+    text: "Sign Out"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible: "Sign In"
+- takeScreenshot: screenshots/37_logged_out

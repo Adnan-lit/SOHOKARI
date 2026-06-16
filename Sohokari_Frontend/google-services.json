@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "789153338766",
+    "project_id": "sohokari-uiu",
+    "storage_bucket": "sohokari-uiu.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:789153338766:android:282d2886688cab9c0000df",
+        "android_client_info": {
+          "package_name": "com.adnan.sohokari"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGWc3xBXC0G1j4SxTfqYot5n-mPbalTGo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

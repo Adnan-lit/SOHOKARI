@@ -12,9 +12,15 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessage, Stri
 
     Page<ChatMessage> findByBookingIdOrderBySentAtAsc(String bookingId, Pageable pageable);
 
+    Page<ChatMessage> findByBookingIdOrderBySentAtDesc(String bookingId, Pageable pageable);
+
     List<ChatMessage> findByReceiverIdAndIsReadFalse(String receiverId);
 
+    List<ChatMessage> findByBookingIdAndReceiverIdAndIsReadFalse(String bookingId, String receiverId);
+
     long countByReceiverIdAndIsReadFalse(String receiverId);
+
+    long countByBookingIdAndReceiverIdAndIsReadFalse(String bookingId, String receiverId);
 
     // All conversations for a user (as sender or receiver)
     List<ChatMessage> findByBookingIdInOrderBySentAtDesc(List<String> bookingIds);

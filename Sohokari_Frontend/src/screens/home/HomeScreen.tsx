@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, StyleSheet, FlatList,
   TouchableOpacity, RefreshControl, ActivityIndicator,
@@ -16,6 +16,7 @@ import ProviderCard       from '@components/common/ProviderCard';
 import CategoryPills      from '@components/common/CategoryPills';
 import EmptyState         from '@components/common/EmptyState';
 import Skeleton           from '@components/common/Skeleton';
+import { useI18n }        from '@store/i18n';
 import type { CustomerTabNavProp } from '@app-types/navigation.types';
 
 export default function HomeScreen() {
@@ -39,15 +40,18 @@ export default function HomeScreen() {
     } catch {}
   }, []);
 
+  // Auto-fetch user's real location on mount
+  useEffect(() => { getLocation(); }, [getLocation]);
+  const { t } = useI18n();
   const providers: ProviderSummaryResponse[] = data ?? [];
-  const greeting = name ? `Hello, ${name.split(' ')[0]} 👋` : 'Hello 👋';
+  const greeting = name ? `${t('home.greeting')}, ${name.split(' ')[0]} 👋` : `${t('home.greeting')} 👋`;
 
   const renderHeader = () => (
     <View>
       <View style={styles.topBar}>
         <View>
           <Text style={styles.greeting}>{greeting}</Text>
-          <Text style={styles.subGreeting}>Find trusted services near you</Text>
+          <Text style={styles.subGreeting}>{t('home.subGreeting')}</Text>
         </View>
         <View style={styles.topBarActions}>
           <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
@@ -62,7 +66,7 @@ export default function HomeScreen() {
       <View style={styles.searchWrap}>
         <TouchableOpacity style={styles.searchBar} onPress={() => navigation.navigate('Search')} activeOpacity={0.8}>
           <Ionicons name="search-outline" size={18} color={Colors.textMuted} />
-          <Text style={styles.searchPlaceholder}>Search electrician, plumber…</Text>
+          <Text style={styles.searchPlaceholder}>{t('home.searchPlaceholder')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.mapBtn} onPress={() => navigation.navigate('NearbyMap')}>
           <Ionicons name="map-outline" size={20} color={Colors.white} />
@@ -85,10 +89,10 @@ export default function HomeScreen() {
           {category ? `${category.replace('_', ' ')} Providers` : 'Nearby Providers'}
           {providers.length > 0 ? ` (${providers.length})` : ''}
         </Text>
-        <TouchableOpacity onPress={getLocation} style={styles.locationBtn}>
+        {/* <TouchableOpacity onPress={getLocation} style={styles.locationBtn}>
           <Ionicons name="locate-outline" size={16} color={Colors.accent} />
           <Text style={styles.locationText}>Update location</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );

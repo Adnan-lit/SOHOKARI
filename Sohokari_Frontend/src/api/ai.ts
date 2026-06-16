@@ -80,18 +80,4 @@ export const aiApi = {
     const { data: res } = await client.get<ApiResponse<RecommendationResponse[]>>('/recommendations', { params });
     return res.data;
   },
-
-  // ✅ GET /api/v1/scheduling/suggest/{providerId}
-  getSchedulingSuggestions: async (providerId: string): Promise<SchedulingSuggestionResponse> => {
-    const { data: res } = await client.get<ApiResponse<SchedulingSuggestionResponse>>(
-      `/scheduling/suggest/${providerId}`
-    );
-    return res.data;
-  },
-
-  // ✅ GET /api/v1/activity/summary
-  getActivitySummary: async (): Promise<Record<string, unknown>> => {
-    const { data: res } = await client.get<ApiResponse<Record<string, unknown>>>('/activity/summary');
-    return res.data;
-  },
 };

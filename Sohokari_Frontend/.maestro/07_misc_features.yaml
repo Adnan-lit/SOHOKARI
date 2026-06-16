@@ -1,0 +1,88 @@
+appId: com.adnan.sohokari
+tags:
+  - notifications
+  - map
+  - ai
+---
+
+# ══════════════════════════════════════════════════════════════
+# TEST: Notifications, Map, and AI Chat
+# ══════════════════════════════════════════════════════════════
+
+- clearState
+- launchApp
+- waitForAnimationToEnd
+
+# Login
+- tapOn:
+    text: "you@example.com"
+- inputText: "customer@test.com"
+- tapOn:
+    text: "••••••••"
+    index: 0
+- inputText: "password123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+
+# ══ NOTIFICATIONS ══════════════════════════════════════════
+
+# Navigate to notifications
+- tapOn:
+    text: "Profile"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Notifications"
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/60_notifications
+
+# Back to profile
+- back
+
+# ══ NEARBY MAP ════════════════════════════════════════════
+
+# Go to Home tab
+- tapOn:
+    text: "Home"
+- waitForAnimationToEnd
+
+# Open nearby map
+- tapOn:
+    id: "map-btn"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: screenshots/61_nearby_map
+
+# Test filter panel
+- tapOn:
+    id: "filter-btn"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/62_map_filters
+
+# Back
+- back
+
+# ══ AI CHAT ═══════════════════════════════════════════════
+
+# Open AI Chat
+- tapOn:
+    text: "AI Assistant"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/63_ai_chat
+
+# Send a message to AI
+- tapOn:
+    text: "Type in Bangla or English"
+    optional: true
+- inputText: "I need an electrician in Dhaka"
+- takeScreenshot: screenshots/64_ai_chat_typing
+
+# Send
+- tapOn:
+    id: "send-ai-btn"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: screenshots/65_ai_response

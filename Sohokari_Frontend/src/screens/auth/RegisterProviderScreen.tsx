@@ -11,6 +11,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
+import * as Location from "expo-location";
 import { useAuthStore } from "@store/authStore";
 import { Colors } from "@theme/colors";
 import { SERVICE_CATEGORIES, ServiceCategory } from "@constants/config";
@@ -73,6 +74,16 @@ export default function RegisterProviderScreen() {
   const handleRegister = async () => {
     if (!validate()) return;
     try {
+      let lat = 23.8103;
+      let lng = 90.4125;
+
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === "granted") {
+        const location = await Location.getCurrentPositionAsync({});
+        lat = location.coords.latitude;
+        lng = location.coords.longitude;
+      }
+
       await registerProvider({
         name: form.name.trim(),
         email: form.email.trim(),
@@ -81,8 +92,8 @@ export default function RegisterProviderScreen() {
         nid: form.nid.trim(),
         tradeLicense: form.tradeLicense.trim(),
         serviceCategory: form.serviceCategory as ServiceCategory,
-        latitude: 23.8103,
-        longitude: 90.4125,
+        latitude: lat,
+        longitude: lng,
       });
     } catch (err: any) {
       Toast.show({

@@ -3,6 +3,8 @@ import type { ServiceCategory } from '@constants/config';
 
 type ApiResponse<T> = { success: boolean; message: string; data: T };
 
+export type VerificationStatus = 'UNVERIFIED' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED';
+
 export type ProviderProfileResponse = {
   userId:                  string;
   name:                    string;
@@ -12,18 +14,26 @@ export type ProviderProfileResponse = {
   providerId:              string;
   serviceCategory:         ServiceCategory;
   skills?:                 string[];
+  portfolio?:              string[];
   bio?:                    string;
   hourlyRate?:             number;
   serviceArea?:            string;
+  latitude?:               number;
+  longitude?:              number;
   averageRating?:          number;
   reputationScore?:        number;
   totalCompletedBookings?: number;
   totalReviews?:           number;
   isAvailable:             boolean;
-  nidVerified?:            boolean;
-  tradeLicenseVerified?:   boolean;
+  nidVerified:             boolean;
+  nidImage?:               string;
+  tradeLicenseVerified:    boolean;
+  tradeLicenseImage?:      string;
+  verificationStatus?:     VerificationStatus;
   badges?:                 string[];
   memberSince?:            string;
+  acceptedPaymentMethods?: ('CASH' | 'BKASH' | 'NAGAD' | 'ROCKET')[];
+  paymentMobileNumber?:    string;
 };
 
 export type ProviderSummaryResponse = {
@@ -33,6 +43,7 @@ export type ProviderSummaryResponse = {
   profilePhoto?:           string;
   serviceCategory:         ServiceCategory;
   skills?:                 string[];
+  portfolio?:              string[];
   hourlyRate?:             number;
   averageRating?:          number;
   reputationScore?:        number;
@@ -41,6 +52,8 @@ export type ProviderSummaryResponse = {
   badges?:                 string[];
   serviceArea?:            string;
   distanceKm?:             number;
+  latitude?:               number;
+  longitude?:              number;
 };
 
 export type ReputationResponse = {
@@ -58,6 +71,25 @@ export type ReputationResponse = {
   responseComponent?:   number;
   reviewComponent?:     number;
   badgeComponent?:      number;
+};
+
+export type TimeSlot = {
+  date: string;
+  time: string;
+  reason?: string;
+};
+
+export type SchedulingSuggestionResponse = {
+  suggestedSlots: TimeSlot[];
+  busySlots: TimeSlot[];
+  note?: string;
+};
+
+export type EarningsResponse = {
+  totalEarnings: number;
+  recentEarnings: number;
+  totalCompleted: number;
+  hourlyRate: number;
 };
 
 // ✅ Swagger: ActivitySummaryResponse (was Record<string,unknown>)
@@ -90,6 +122,9 @@ export const providersApi = {
   updateProfile: async (payload: {
     bio?: string; skills?: string[]; hourlyRate?: number;
     serviceArea?: string; longitude?: number; latitude?: number;
+    profilePhoto?: string; portfolio?: string[];
+    acceptedPaymentMethods?: ('CASH' | 'BKASH' | 'NAGAD' | 'ROCKET')[];
+    paymentMobileNumber?: string;
   }): Promise<ProviderProfileResponse> => {
     const { data: res } = await client.put<ApiResponse<ProviderProfileResponse>>('/providers/me/profile', payload);
     return res.data;
@@ -102,22 +137,41 @@ export const providersApi = {
     return res.data['isAvailable'] ?? Object.values(res.data)[0] ?? false;
   },
 
+  submitVerification: async (data: { nidImage: string; tradeLicenseImage: string }): Promise<ProviderProfileResponse> => {
+    const { data: res } = await client.post<ApiResponse<ProviderProfileResponse>>('/providers/me/submit-verification', data);
+    return res.data;
+  },
+
   getReputation: async (providerId: string): Promise<ReputationResponse> => {
     const { data: res } = await client.get<ApiResponse<ReputationResponse>>(`/providers/${providerId}/reputation`);
     return res.data;
   },
 
-  search: async (params: {
-    q?: string; category?: ServiceCategory; minPrice?: number; maxPrice?: number;
-    minRating?: number; available?: boolean; lat?: number; lng?: number;
-    radius?: number; sortBy?: string; page?: number; size?: number;
+  search: async (data: {
+    keyword?: string;
+    category?: ServiceCategory;
+    maxHourlyRate?: number;
+    minRating?: number;
+    latitude?: number;
+    longitude?: number;
+    maxDistanceKm?: number;
   }): Promise<ProviderSummaryResponse[]> => {
-    const { data: res } = await client.get<ApiResponse<{ content: ProviderSummaryResponse[] }>>('/services/search', { params });
-    return res.data.content;
+    const { data: res } = await client.post<ApiResponse<ProviderSummaryResponse[]>>('/providers/search', data);
+    return res.data;
   },
 
   getActivitySummary: async (): Promise<ActivitySummaryResponse> => {
     const { data: res } = await client.get<ApiResponse<ActivitySummaryResponse>>('/activity/summary');
+    return res.data;
+  },
+
+  getSchedulingSuggestions: async (providerId: string): Promise<SchedulingSuggestionResponse> => {
+    const { data: res } = await client.get<ApiResponse<SchedulingSuggestionResponse>>(`/scheduling/suggest/${providerId}`);
+    return res.data;
+  },
+
+  getEarnings: async (): Promise<EarningsResponse> => {
+    const { data: res } = await client.get<ApiResponse<EarningsResponse>>('/providers/me/earnings');
     return res.data;
   },
 };

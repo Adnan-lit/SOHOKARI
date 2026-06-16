@@ -60,14 +60,13 @@ export default function SearchScreen() {
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ['search', applied],
     queryFn: () => providersApi.search({
-      q:         applied.q || undefined,
+      keyword:   applied.q || undefined,
       category:  applied.category ?? undefined,
       minRating: applied.minRating ?? undefined,
-      maxPrice:  applied.maxPrice ?? undefined,
-      available: applied.available || undefined,
-      sortBy:    applied.sortBy ?? undefined,
-      lat:       applied.lat,
-      lng:       applied.lng,
+      maxHourlyRate: applied.maxPrice ?? undefined,
+      latitude:  applied.lat,
+      longitude: applied.lng,
+      maxDistanceKm: 10, // hardcode for now or could be added to filters
     }),
     enabled:   !!(applied.q || applied.category),
     staleTime: 30_000,

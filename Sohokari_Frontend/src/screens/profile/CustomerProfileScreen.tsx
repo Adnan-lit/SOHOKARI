@@ -1,16 +1,20 @@
 import React from 'react';
 import {
   View, Text, StyleSheet, ScrollView,
-  TouchableOpacity, Alert,
+  TouchableOpacity, Alert, Image
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useQuery }      from '@tanstack/react-query';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useQuery, useMutation }      from '@tanstack/react-query';
+import Toast             from 'react-native-toast-message';
+import * as Location     from 'expo-location';
 import { Ionicons }      from '@expo/vector-icons';
 import { useAuthStore }  from '@store/authStore';
 import { bookingsApi }   from '@api/bookings';
+import { usersApi }      from '@api/users';
 import { Colors }        from '@theme/colors';
 import Button            from '@components/common/Button';
-import type { CustomerTabNavProp } from '@app-types/navigation.types';
+import { useI18n }       from '@store/i18n';
+import type { CustomerTabNavProp, CustomerTabParamList, RootStackParamList } from '@app-types/navigation.types';
 
 interface MenuItem {
   icon:    React.ComponentProps<typeof Ionicons>['name'];
@@ -21,13 +25,62 @@ interface MenuItem {
 
 export default function CustomerProfileScreen() {
   const navigation        = useNavigation<CustomerTabNavProp>();
-  const { name, email, logout } = useAuthStore();
+  const route             = useRoute<RouteProp<CustomerTabParamList, 'Profile'>>();
+  const { name, email, role, profilePhoto, logout } = useAuthStore();
+  const { locale, setLocale, t } = useI18n();
 
   const { data: bookings } = useQuery({
     queryKey: ['myBookings', 'ALL'],
     queryFn:  () => bookingsApi.getMy(),
     staleTime: 60_000,
   });
+
+  const locationMutation = useMutation({
+    mutationFn: (coords: { lat: number, lng: number }) => usersApi.updateLocation(coords.lat, coords.lng),
+    onSuccess: () => {
+      Toast.show({ type: 'success', text1: 'Location Updated', text2: 'Your default location has been saved.' });
+    },
+    onError: (err: any) => {
+      Toast.show({ type: 'error', text1: 'Location Error', text2: err.message });
+    }
+  });
+
+  React.useEffect(() => {
+    if (route.params?.pickedLocation) {
+      const { latitude, longitude } = route.params.pickedLocation;
+      locationMutation.mutate({ lat: latitude, lng: longitude });
+      navigation.setParams({ pickedLocation: undefined });
+    }
+  }, [route.params?.pickedLocation]);
+
+  const handleUpdateLocation = () => {
+    Alert.alert(
+      'Update Location',
+      'How would you like to update your location?',
+      [
+        {
+          text: 'Use GPS',
+          onPress: async () => {
+            try {
+              const { status } = await Location.requestForegroundPermissionsAsync();
+              if (status !== 'granted') throw new Error('Permission denied');
+              const loc = await Location.getCurrentPositionAsync({});
+              locationMutation.mutate({ lat: loc.coords.latitude, lng: loc.coords.longitude });
+            } catch (e: any) {
+              Toast.show({ type: 'error', text1: 'Error', text2: e.message });
+            }
+          }
+        },
+        {
+          text: 'Pick on Map',
+          onPress: () => {
+            navigation.navigate('LocationPicker', { returnScreen: 'Profile' });
+          }
+        },
+        { text: 'Cancel', style: 'cancel' }
+      ]
+    );
+  };
 
   const stats = {
     total:     bookings?.length ?? 0,
@@ -43,12 +96,16 @@ export default function CustomerProfileScreen() {
   };
 
   const menuItems: MenuItem[] = [
+    { icon: 'person-outline',        label: 'Edit Profile',     onPress: () => navigation.navigate('EditCustomerProfile') },
     { icon: 'calendar-outline',      label: 'My Bookings',      onPress: () => navigation.navigate('Bookings') },
     { icon: 'chatbubbles-outline',   label: 'Messages',         onPress: () => navigation.navigate('Chat') },
     { icon: 'notifications-outline', label: 'Notifications',    onPress: () => navigation.navigate('Notifications') },
+    { icon: 'location-outline',      label: 'Update My Location', onPress: handleUpdateLocation },
+    ...(role === 'ADMIN' ? [{ icon: 'shield-checkmark-outline' as const, label: 'Admin Dashboard', onPress: () => navigation.navigate('AdminDashboard' as any) }] : []),
     { icon: 'help-circle-outline',   label: 'Help & Support',   onPress: () => {} },
     { icon: 'document-text-outline', label: 'Terms of Service', onPress: () => {} },
-    { icon: 'log-out-outline',       label: 'Sign Out',         onPress: handleLogout, danger: true },
+    { icon: 'language-outline',      label: locale === 'en' ? 'বাংলা ভাষায় পরিবর্তন' : 'Switch to English', onPress: () => setLocale(locale === 'en' ? 'bn' : 'en') },
+    { icon: 'log-out-outline',       label: t('common.logout'), onPress: handleLogout, danger: true },
   ];
 
   const initials = name?.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() ?? '?';
@@ -59,7 +116,11 @@ export default function CustomerProfileScreen() {
       {/* Hero */}
       <View style={styles.hero}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initials}</Text>
+          {profilePhoto ? (
+            <Image source={{ uri: profilePhoto }} style={styles.avatarImage} />
+          ) : (
+            <Text style={styles.avatarText}>{initials}</Text>
+          )}
         </View>
         <Text style={styles.name}>{name ?? 'Customer'}</Text>
         <Text style={styles.email}>{email}</Text>
@@ -105,7 +166,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
 
   hero:       { backgroundColor: Colors.primary, alignItems: 'center', paddingTop: 32, paddingBottom: 32 },
-  avatar:     { width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: 'rgba(255,255,255,0.3)', marginBottom: 12 },
+  avatar:     { width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.primaryLight, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: 'rgba(255,255,255,0.3)', marginBottom: 12, overflow: 'hidden' },
+  avatarImage: { width: '100%', height: '100%' },
   avatarText: { fontSize: 30, color: Colors.white, fontWeight: '700' },
   name:       { fontSize: 22, fontWeight: '700', color: Colors.white, marginBottom: 4 },
   email:      { fontSize: 14, color: 'rgba(255,255,255,0.7)', marginBottom: 10 },

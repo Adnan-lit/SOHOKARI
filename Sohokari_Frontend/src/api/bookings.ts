@@ -14,6 +14,7 @@ export type BookingResponse = {
   scheduledTime:      string;
   notes?:             string;
   address:            string;
+  isUrgent?:          boolean;
   status:             BookingStatus;
   cancellationReason?:string;
   rejectionReason?:   string;
@@ -31,6 +32,7 @@ export type CreateBookingPayload = {
   scheduledTime:   string;  // HH:mm:ss  → backend parses as LocalTime
   notes?:          string;
   address:         string;
+  isUrgent?:       boolean;
 };
 
 // ✅ Backend wraps everything in ApiResponse<T> → { success, message, data }

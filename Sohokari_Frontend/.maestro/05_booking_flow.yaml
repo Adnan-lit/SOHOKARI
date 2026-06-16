@@ -1,0 +1,112 @@
+appId: com.adnan.sohokari
+tags:
+  - booking
+  - crud
+---
+
+# ══════════════════════════════════════════════════════════════
+# TEST: Booking Creation & Management Flow
+# ══════════════════════════════════════════════════════════════
+
+- clearState
+- launchApp
+- waitForAnimationToEnd
+
+# Login as customer
+- tapOn:
+    text: "you@example.com"
+- inputText: "customer@test.com"
+- tapOn:
+    text: "••••••••"
+    index: 0
+- inputText: "password123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+
+# ── Test 1: View provider and start booking ──────────────
+# Tap on a provider card from the home list
+- tapOn:
+    text: "Electrician"
+    optional: true
+    index: 0
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/40_provider_list
+
+# Tap on first provider
+- tapOn:
+    text: "View Profile"
+    optional: true
+    index: 0
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/41_provider_profile
+
+# Tap Book Now
+- scrollUntilVisible:
+    element:
+      text: "Book Now"
+      optional: true
+    direction: DOWN
+    timeout: 5000
+- tapOn:
+    text: "Book Now"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/42_create_booking
+
+# ── Test 2: Fill booking form ────────────────────────────
+# Enter address
+- tapOn:
+    text: "House 12, Road 5, Dhaka"
+    optional: true
+- inputText: "House 45, Road 3, Mirpur-10"
+
+# Enter description
+- tapOn:
+    text: "Describe the problem briefly"
+    optional: true
+- inputText: "Need electrical wiring fixed in bedroom"
+
+- takeScreenshot: screenshots/43_booking_form_filled
+
+# Submit booking
+- tapOn:
+    text: "Confirm Booking"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/44_booking_submitted
+
+# ── Test 3: View booking details ─────────────────────────
+- tapOn:
+    text: "Bookings"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/45_bookings_list
+
+# Tap on first booking
+- tapOn:
+    index: 0
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/46_booking_detail
+
+# ── Test 4: Cancel booking ───────────────────────────────
+- scrollUntilVisible:
+    element:
+      text: "Cancel Booking"
+      optional: true
+    direction: DOWN
+    timeout: 5000
+- tapOn:
+    text: "Cancel Booking"
+    optional: true
+- waitForAnimationToEnd
+# Enter cancellation reason
+- tapOn:
+    text: "Enter reason"
+    optional: true
+- inputText: "Changed my mind"
+- tapOn:
+    text: "Confirm"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/47_booking_cancelled

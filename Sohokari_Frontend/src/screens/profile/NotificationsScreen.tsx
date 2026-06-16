@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View, Text, StyleSheet, FlatList,
   TouchableOpacity, RefreshControl, ActivityIndicator,
@@ -49,6 +49,15 @@ export default function NotificationsScreen() {
 
   const notifications: NotificationResponse[] = (data as NotificationResponse[]) ?? [];
   const hasUnread = notifications.some(n => !n.read);
+
+  // I3: Auto-mark all as read after 2 seconds of viewing
+  useEffect(() => {
+    if (!hasUnread) return;
+    const timer = setTimeout(() => {
+      markAllRead.mutate();
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [hasUnread]);
 
   const handlePress = (item: NotificationResponse) => {
     if (!item.read) {

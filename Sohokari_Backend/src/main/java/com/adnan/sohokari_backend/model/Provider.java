@@ -51,12 +51,22 @@ public class Provider {
 
     // Verification
     private String nid;
+    private String nidImage;
     private Boolean nidVerified = false;
     private String tradeLicense;          // required for ELECTRICIAN, PLUMBER, etc.
+    private String tradeLicenseImage;
     private Boolean tradeLicenseVerified = false;
+    private VerificationStatus verificationStatus = VerificationStatus.UNVERIFIED;
 
     // Badges assigned to this provider
     private List<String> badges;
+
+    // Service Portfolio photos
+    private List<String> portfolio;
+
+    // Payment settings
+    private List<PaymentMethod> acceptedPaymentMethods;
+    private String paymentMobileNumber;
 
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt = LocalDateTime.now();

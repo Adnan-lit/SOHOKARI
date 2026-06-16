@@ -87,7 +87,7 @@ public class ReviewService {
         review.setProfessionalBehavior(req.getProfessionalBehavior());
         review.setOverallSatisfaction(req.getOverallSatisfaction());
         review.setAverageRating(average);
-        review.setReviewText(req.getReviewText());
+        review.setReviewText(com.adnan.sohokari_backend.util.SanitizeUtil.sanitize(req.getReviewText(), 2000));
         reviewRepository.save(review);
 
         // Update booking status to REVIEWED

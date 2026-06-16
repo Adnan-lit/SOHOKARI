@@ -43,4 +43,9 @@ public class User {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    // Location Tracking
+    private Double latitude;
+    private Double longitude;
+    private LocalDateTime locationUpdatedAt;
 }

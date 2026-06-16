@@ -29,13 +29,18 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        // Public endpoints — auth (excluding admin registration)
+                        .requestMatchers("/api/v1/auth/login").permitAll()
+                        .requestMatchers("/api/v1/auth/register/customer").permitAll()
+                        .requestMatchers("/api/v1/auth/register/provider").permitAll()
+                        .requestMatchers("/api/v1/auth/refresh-token").permitAll()
                         .requestMatchers("/api/v1/services/search").permitAll()
                         .requestMatchers("/api/v1/providers/nearby").permitAll()
+                        .requestMatchers("/api/v1/providers/search").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/providers/{id}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/reviews/provider/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/reviews/booking/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // Authenticated endpoints — explicitly allow all review methods
                         .requestMatchers("/api/v1/reviews/**").authenticated()

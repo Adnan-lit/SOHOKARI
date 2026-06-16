@@ -29,6 +29,13 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok("Provider registered successfully", data));
     }
 
+    @PostMapping("/register/admin")
+    public ResponseEntity<ApiResponse<AuthResponse>> registerAdmin(
+            @Valid @RequestBody CustomerRegisterRequest req) {
+        AuthResponse data = authService.registerAdmin(req);
+        return ResponseEntity.ok(ApiResponse.ok("Admin registered successfully", data));
+    }
+
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(
             @Valid @RequestBody LoginRequest req) {

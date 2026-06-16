@@ -59,7 +59,7 @@ public class ChatService {
         msg.setBookingId(req.getBookingId());
         msg.setSenderId(sender.getId());
         msg.setReceiverId(req.getReceiverId());
-        msg.setContent(req.getContent());
+        msg.setContent(com.adnan.sohokari_backend.util.SanitizeUtil.sanitize(req.getContent(), 500));
         msg.setMessageType(req.getMessageType());
         chatMessageRepository.save(msg);
 
@@ -176,7 +176,7 @@ public class ChatService {
         for (Booking booking : bookings) {
             // Get last message in this booking's chat
             Page<ChatMessage> lastMsg = chatMessageRepository
-                    .findByBookingIdOrderBySentAtAsc(
+                    .findByBookingIdOrderBySentAtDesc(
                             booking.getId(), PageRequest.of(0, 1));
 
             if (lastMsg.isEmpty()) continue;
@@ -191,7 +191,7 @@ public class ChatService {
             User otherUser = userRepository.findById(otherUserId).orElse(null);
 
             long unread = chatMessageRepository
-                    .countByReceiverIdAndIsReadFalse(user.getId());
+                    .countByBookingIdAndReceiverIdAndIsReadFalse(booking.getId(), user.getId());
 
             ConversationResponse conv = new ConversationResponse();
             conv.setBookingId(booking.getId());
@@ -221,7 +221,7 @@ public class ChatService {
                 String otherUserId = user.getId().equals(parts[1]) ? parts[2] : parts[1];
                 User otherUser = userRepository.findById(otherUserId).orElse(null);
                 
-                long unread = chatMessageRepository.countByReceiverIdAndIsReadFalse(user.getId());
+                long unread = chatMessageRepository.countByBookingIdAndReceiverIdAndIsReadFalse(last.getBookingId(), user.getId());
                 
                 ConversationResponse conv = new ConversationResponse();
                 conv.setBookingId(last.getBookingId());
@@ -256,6 +256,19 @@ public class ChatService {
         }
 
         chatMessageRepository.delete(msg);
+    }
+
+    // ── Mark messages as read ─────────────────────────────────────────────
+
+    public void markAsRead(String userEmail, String bookingId) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<ChatMessage> unreadMessages = chatMessageRepository
+                .findByBookingIdAndReceiverIdAndIsReadFalse(bookingId, user.getId());
+
+        unreadMessages.forEach(m -> m.setRead(true));
+        chatMessageRepository.saveAll(unreadMessages);
     }
 
     // ── Helper ────────────────────────────────────────────────────────────

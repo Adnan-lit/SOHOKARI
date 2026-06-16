@@ -29,4 +29,6 @@ public class CreateBookingRequest {
 
     @NotBlank(message = "Service address is required")
     private String address;
+
+    private Boolean isUrgent;
 }

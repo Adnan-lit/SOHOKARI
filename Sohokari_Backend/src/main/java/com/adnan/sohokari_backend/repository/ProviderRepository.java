@@ -30,6 +30,8 @@ public interface ProviderRepository extends MongoRepository<Provider, String> {
             GeoJsonPoint point, Distance distance, Boolean isAvailable
     );
 
+    List<Provider> findByVerificationStatus(com.adnan.sohokari_backend.model.VerificationStatus status);
+
     // Filter by category
     Page<Provider> findByServiceCategory(ServiceCategory category, Pageable pageable);
 

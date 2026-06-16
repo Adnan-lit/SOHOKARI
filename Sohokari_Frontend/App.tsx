@@ -12,6 +12,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -26,7 +28,12 @@ if (Platform.OS === 'android') {
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { retry: 1, staleTime: 30_000 },
+    queries: {
+      retry: 1,
+      staleTime: 60_000,          // 1 min before refetch
+      gcTime: 1000 * 60 * 30,     // I6: Keep cached data for 30 min (offline support)
+      refetchOnReconnect: true,    // Auto-refetch when coming back online
+    },
   },
 });
 
@@ -34,12 +41,12 @@ export default function App() {
   React.useEffect(() => {
     const subscription = Notifications.addNotificationResponseReceivedListener(response => {
       const data = response.notification.request.content.data;
-      if (data?.type === 'NEW_MESSAGE' && data?.bookingId) {
+      if (data?.type === 'NEW_MESSAGE') {
         if (navigationRef.isReady()) {
           navigationRef.navigate('ChatRoom', {
-            bookingId: data.bookingId,
-            participantName: data.senderName || 'Chat',
-            receiverId: data.senderId,
+            bookingId: (data.bookingId as string) || '',
+            participantName: (data.senderName as string) || 'Chat',
+            receiverId: (data.senderId as string),
           });
         }
       }

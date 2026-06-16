@@ -7,6 +7,10 @@ import { API_TIMEOUT, BASE_URL } from '@constants/config';
 export const TOKEN_KEY   = 'sohokari_token';
 export const REFRESH_KEY = 'sohokari_refresh_token';
 
+// Force-logout callback — set by authStore to avoid circular imports
+let _onForceLogout: (() => void) | null = null;
+export const setForceLogoutHandler = (fn: () => void) => { _onForceLogout = fn; };
+
 const isWeb = Platform.OS === 'web';
 export const saveToken    = (t: string) => isWeb ? AsyncStorage.setItem(TOKEN_KEY, t)    : SecureStore.setItemAsync(TOKEN_KEY, t);
 export const clearToken   = ()          => isWeb ? AsyncStorage.removeItem(TOKEN_KEY)     : SecureStore.deleteItemAsync(TOKEN_KEY);
@@ -82,11 +86,8 @@ client.interceptors.response.use(
         return client(original);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        // Dispatch logout event so authStore can clear state
-        // (avoids circular import by using a custom event)
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new Event('sohokari:logout'));
-        }
+        // Trigger force-logout via the registered callback (works on native + web)
+        _onForceLogout?.();
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

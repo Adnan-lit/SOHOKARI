@@ -118,6 +118,34 @@ export default function ProviderDashboardScreen() {
         </View>
       </View>
 
+      {/* Verification Banner */}
+      {provider?.verificationStatus !== 'APPROVED' && (
+        <TouchableOpacity 
+          style={[styles.verificationBanner, provider?.verificationStatus === 'REJECTED' && { backgroundColor: Colors.error }]}
+          onPress={() => provider?.verificationStatus !== 'PENDING_REVIEW' && navigation.navigate('Verification' as any)}
+        >
+          <Ionicons 
+            name={provider?.verificationStatus === 'PENDING_REVIEW' ? 'time' : 'alert-circle'} 
+            size={24} color={Colors.white} 
+          />
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Text style={styles.verificationTitle}>
+              {provider?.verificationStatus === 'UNVERIFIED' && 'Identity Verification Required'}
+              {provider?.verificationStatus === 'PENDING_REVIEW' && 'Verification Pending'}
+              {provider?.verificationStatus === 'REJECTED' && 'Verification Rejected'}
+            </Text>
+            <Text style={styles.verificationSub}>
+              {provider?.verificationStatus === 'UNVERIFIED' && 'Tap here to upload your documents.'}
+              {provider?.verificationStatus === 'PENDING_REVIEW' && 'An admin is reviewing your documents.'}
+              {provider?.verificationStatus === 'REJECTED' && 'Tap to re-upload valid documents.'}
+            </Text>
+          </View>
+          {provider?.verificationStatus !== 'PENDING_REVIEW' && (
+            <Ionicons name="chevron-forward" size={20} color={Colors.white} />
+          )}
+        </TouchableOpacity>
+      )}
+
       {/* Stats */}
       <View style={styles.statsGrid}>
         {[
@@ -214,6 +242,9 @@ const styles = StyleSheet.create({
   availRow:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: 14 },
   availTitle: { fontSize: 14, fontWeight: '600', color: Colors.white, marginBottom: 2 },
   availSub:   { fontSize: 12, color: 'rgba(255,255,255,0.65)' },
+  verificationBanner: { margin: 16, marginBottom: 0, padding: 16, backgroundColor: Colors.warning, borderRadius: 12, flexDirection: 'row', alignItems: 'center' },
+  verificationTitle: { color: Colors.white, fontWeight: '700', fontSize: 15 },
+  verificationSub: { color: 'rgba(255,255,255,0.9)', fontSize: 13, marginTop: 2 },
   statsGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 10, padding: 16 },
   statCard:   { flex: 1, minWidth: '44%', backgroundColor: Colors.surface, borderRadius: 12, padding: 16, alignItems: 'center', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4 },
   statVal:    { fontSize: 28, fontWeight: '700' },

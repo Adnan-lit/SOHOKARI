@@ -1,0 +1,87 @@
+appId: com.adnan.sohokari
+tags:
+  - provider
+  - auth
+---
+
+# ══════════════════════════════════════════════════════════════
+# TEST: Provider Registration & Dashboard
+# ══════════════════════════════════════════════════════════════
+
+- clearState
+- launchApp
+- waitForAnimationToEnd
+
+# Navigate to provider registration
+- tapOn:
+    text: "Don't have an account?"
+    optional: true
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "Register as Provider"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/70_provider_register
+
+# ── Test 1: Empty form validation ─────────────────────────
+- tapOn: "Create Account"
+- takeScreenshot: screenshots/71_provider_register_validation
+
+# ── Test 2: Fill provider registration ────────────────────
+- tapOn:
+    text: "Karim Ali"
+    optional: true
+- inputText: "Test Provider"
+- tapOn:
+    text: "you@example.com"
+    optional: true
+- inputText: "provider@test.com"
+- tapOn:
+    text: "01812345678"
+    optional: true
+- inputText: "01812345678"
+- tapOn:
+    text: "••••••••"
+    optional: true
+    index: 0
+- inputText: "password123"
+- tapOn:
+    text: "••••••••"
+    optional: true
+    index: 1
+- inputText: "password123"
+- takeScreenshot: screenshots/72_provider_form_filled
+
+# ── Test 3: Provider login ────────────────────────────────
+- back
+- waitForAnimationToEnd
+
+# Go to login and use provider credentials
+- tapOn:
+    text: "you@example.com"
+- inputText: "provider@test.com"
+- tapOn:
+    text: "••••••••"
+    index: 0
+- inputText: "password123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/73_provider_dashboard
+
+# ── Test 4: Provider profile tab ──────────────────────────
+- tapOn:
+    text: "Profile"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/74_provider_profile
+
+# ── Test 5: Edit provider profile ────────────────────────
+- tapOn:
+    text: "Edit Profile"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/75_edit_provider_profile
+
+# Go back
+- back

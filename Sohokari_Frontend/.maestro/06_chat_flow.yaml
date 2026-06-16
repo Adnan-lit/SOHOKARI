@@ -1,0 +1,59 @@
+appId: com.adnan.sohokari
+tags:
+  - chat
+  - messaging
+---
+
+# ══════════════════════════════════════════════════════════════
+# TEST: Chat / Messaging Flow
+# ══════════════════════════════════════════════════════════════
+
+- clearState
+- launchApp
+- waitForAnimationToEnd
+
+# Login
+- tapOn:
+    text: "you@example.com"
+- inputText: "customer@test.com"
+- tapOn:
+    text: "••••••••"
+    index: 0
+- inputText: "password123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+
+# ── Test 1: Chat list screen ─────────────────────────────
+- tapOn:
+    text: "Chat"
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/50_chat_list
+
+# ── Test 2: Open a chat room ─────────────────────────────
+# If there are conversations, tap the first one
+- tapOn:
+    index: 0
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/51_chat_room
+
+# ── Test 3: Send a message ───────────────────────────────
+- tapOn:
+    text: "Type a message"
+    optional: true
+- inputText: "Hello! Is this service still available?"
+- takeScreenshot: screenshots/52_chat_typing
+
+# Tap send button
+- tapOn:
+    id: "send-btn"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/53_chat_message_sent
+
+# ── Test 4: Empty message should not send ─────────────────
+- tapOn:
+    id: "send-btn"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: screenshots/54_chat_empty_message

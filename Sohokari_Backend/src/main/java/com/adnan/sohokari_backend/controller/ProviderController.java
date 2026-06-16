@@ -1,7 +1,9 @@
 package com.adnan.sohokari_backend.controller;
 
 
+import com.adnan.sohokari_backend.dto.request.SubmitVerificationRequest;
 import com.adnan.sohokari_backend.dto.request.UpdateProviderProfileRequest;
+import com.adnan.sohokari_backend.dto.request.ProviderSearchRequest;
 import com.adnan.sohokari_backend.dto.response.*;
 import com.adnan.sohokari_backend.model.ServiceCategory;
 import com.adnan.sohokari_backend.service.*;
@@ -48,6 +50,14 @@ public class ProviderController {
         return ResponseEntity.ok(ApiResponse.ok("Nearby providers", result));
     }
 
+    @PostMapping("/search")
+    public ResponseEntity<ApiResponse<List<ProviderSummaryResponse>>> search(
+            @RequestBody ProviderSearchRequest req) {
+        
+        List<ProviderSummaryResponse> result = providerService.searchProviders(req);
+        return ResponseEntity.ok(ApiResponse.ok("Search results", result));
+    }
+
     // ── Protected endpoints (PROVIDER only) ──────────────────────────────
 
     @GetMapping("/me")
@@ -78,6 +88,17 @@ public class ProviderController {
         return ResponseEntity.ok(
                 ApiResponse.ok("Availability updated",
                         Map.of("isAvailable", isAvailable))
+        );
+    }
+
+    @PostMapping("/me/submit-verification")
+    @PreAuthorize("hasRole('PROVIDER')")
+    public ResponseEntity<ApiResponse<ProviderProfileResponse>> submitVerification(
+            Principal principal,
+            @Valid @RequestBody SubmitVerificationRequest req) {
+        return ResponseEntity.ok(
+                ApiResponse.ok("Verification submitted",
+                        providerService.submitVerification(principal.getName(), req))
         );
     }
 }

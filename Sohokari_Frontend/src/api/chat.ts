@@ -67,6 +67,10 @@ export const chatApi = {
   deleteMessage: async (messageId: string): Promise<void> => {
     await client.delete(`/chats/${messageId}`);
   },
+
+  markAsRead: async (bookingId: string): Promise<void> => {
+    await client.put(`/chats/${bookingId}/read`);
+  },
 };
 
 export const notificationsApi = {

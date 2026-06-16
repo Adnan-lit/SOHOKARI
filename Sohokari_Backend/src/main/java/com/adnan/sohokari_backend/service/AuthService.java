@@ -47,7 +47,27 @@ public class AuthService {
         String refresh = jwtUtil.generateRefreshToken(user.getEmail());
 
         return new AuthResponse(access, refresh, user.getId(), user.getName(),
-                user.getRole().name(), user.getEmail());
+                user.getRole().name(), user.getEmail(), user.getProfilePhoto());
+    }
+
+    public AuthResponse registerAdmin(CustomerRegisterRequest req) {
+        if (userRepository.existsByEmail(req.getEmail())) {
+            throw new RuntimeException("Email already registered");
+        }
+
+        User user = new User();
+        user.setName(req.getName());
+        user.setEmail(req.getEmail());
+        user.setPassword(passwordEncoder.encode(req.getPassword()));
+        user.setPhone(req.getPhone());
+        user.setRole(Role.ADMIN);
+        userRepository.save(user);
+
+        String access  = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        String refresh = jwtUtil.generateRefreshToken(user.getEmail());
+
+        return new AuthResponse(access, refresh, user.getId(), user.getName(),
+                user.getRole().name(), user.getEmail(), user.getProfilePhoto());
     }
 
     public AuthResponse registerProvider(ProviderRegisterRequest req) {
@@ -83,26 +103,26 @@ public class AuthService {
         String refresh = jwtUtil.generateRefreshToken(user.getEmail());
 
         return new AuthResponse(access, refresh, user.getId(), user.getName(),
-                user.getRole().name(), user.getEmail());
+                user.getRole().name(), user.getEmail(), user.getProfilePhoto());
     }
 
     public AuthResponse login(LoginRequest req) {
         User user = userRepository.findByEmail(req.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                .orElseThrow(() -> new com.adnan.sohokari_backend.exception.BadRequestException("Invalid email or password"));
 
         if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+            throw new com.adnan.sohokari_backend.exception.BadRequestException("Invalid email or password");
         }
 
         if (!user.isActive()) {
-            throw new RuntimeException("Account is deactivated");
+            throw new com.adnan.sohokari_backend.exception.BadRequestException("Account is deactivated");
         }
 
         String access  = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
         String refresh = jwtUtil.generateRefreshToken(user.getEmail());
 
         return new AuthResponse(access, refresh, user.getId(), user.getName(),
-                user.getRole().name(), user.getEmail());
+                user.getRole().name(), user.getEmail(), user.getProfilePhoto());
     }
 
     public AuthResponse refreshToken(String refreshToken) {
@@ -117,6 +137,6 @@ public class AuthService {
         String newRefresh = jwtUtil.generateRefreshToken(user.getEmail());
 
         return new AuthResponse(newAccess, newRefresh, user.getId(), user.getName(),
-                user.getRole().name(), user.getEmail());
+                user.getRole().name(), user.getEmail(), user.getProfilePhoto());
     }
 }

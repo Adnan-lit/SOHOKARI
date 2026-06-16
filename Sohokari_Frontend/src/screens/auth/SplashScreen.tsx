@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthStore }  from '@store/authStore';
 import { Colors }        from '@theme/colors';
@@ -22,20 +22,19 @@ export default function SplashScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.logoBox}>
-        <Text style={styles.logo}>সহকারী</Text>
-        <Text style={styles.logoEn}>SOHOKARI</Text>
-      </View>
+      <Image
+        source={require('../../../assets/logo.jpeg')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
       <Text style={styles.tagline}>Your trusted home service partner</Text>
-      <ActivityIndicator size="small" color={Colors.accentLight} style={{ marginTop: 48 }} />
+      <ActivityIndicator size="small" color={Colors.accentLight} style={{ marginTop: 32 }} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
-  logoBox:   { alignItems: 'center', marginBottom: 16 },
-  logo:      { fontSize: 48, color: Colors.white, fontWeight: '700', letterSpacing: 2 },
-  logoEn:    { fontSize: 18, color: Colors.accentLight, fontWeight: '600', letterSpacing: 6, marginTop: 4 },
-  tagline:   { fontSize: 14, color: 'rgba(255,255,255,0.6)', marginTop: 8, letterSpacing: 1 },
+  logo:      { width: 200, height: 200, borderRadius: 24, marginBottom: 16 },
+  tagline:   { fontSize: 14, color: 'rgba(255,255,255,0.7)', marginTop: 8, letterSpacing: 1, fontWeight: '500' },
 });

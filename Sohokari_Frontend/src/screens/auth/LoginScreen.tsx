@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   ScrollView,
   KeyboardAvoidingView,
@@ -69,6 +70,11 @@ export default function LoginScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
+          <Image
+            source={require('../../../assets/logo.jpeg')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.title}>Welcome back</Text>
           <Text style={styles.subtitle}>Sign in to your Sohokari account</Text>
         </View>
@@ -133,7 +139,8 @@ const styles = StyleSheet.create({
     paddingTop: 64,
     paddingBottom: 40,
   },
-  header: { marginBottom: 32 },
+  header: { alignItems: 'center', marginBottom: 32 },
+  logo: { width: 120, height: 120, borderRadius: 20, marginBottom: 16 },
   title: {
     fontSize: 28,
     fontWeight: "700",

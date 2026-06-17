@@ -1,0 +1,100 @@
+appId: com.adnan.sohokari
+tags:
+  - generated
+  - customer
+  - navigation
+  - search
+---
+- clearState
+- launchApp
+- waitForAnimationToEnd
+- tapOn: "you@example.com"
+- inputText: "customer@test.com"
+- tapOn: "••••••••"
+- inputText: "password123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd:
+    timeout: 15000
+- takeScreenshot: generated/screenshots/03_01_customer_home
+
+- assertVisible:
+    text: "Categories"
+    optional: true
+- assertVisible:
+    text: "Electrician"
+    optional: true
+- assertVisible:
+    text: "Plumber"
+    optional: true
+- tapOn:
+    text: "Electrician"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: generated/screenshots/03_02_category_filter
+
+- tapOn:
+    text: "Search services or providers…|Search"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Search by name, skill…|Search for a service"
+    optional: true
+- takeScreenshot: generated/screenshots/03_03_search_initial
+- tapOn:
+    text: "Search by name, skill…"
+    optional: true
+- inputText: "plumber"
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 10000
+- assertVisible:
+    text: "provider|No results found|providers found"
+    optional: true
+- takeScreenshot: generated/screenshots/03_04_search_results
+- back
+
+- tapOn:
+    text: "AI Assistant"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Hello! I am your Sohokari AI assistant"
+    optional: true
+- takeScreenshot: generated/screenshots/03_05_ai_assistant
+- back
+
+- tapOn:
+    text: "Bookings"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible:
+    text: "ALL|No bookings yet|REQUESTED"
+    optional: true
+- takeScreenshot: generated/screenshots/03_06_bookings_tab
+
+- tapOn:
+    text: "Chat"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible:
+    text: "No messages yet|Messages"
+    optional: true
+- takeScreenshot: generated/screenshots/03_07_chat_tab
+
+- tapOn:
+    text: "Notifications"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible:
+    text: "All caught up!|Mark all read|Notifications"
+    optional: true
+- takeScreenshot: generated/screenshots/03_08_notifications_tab
+
+- tapOn:
+    text: "Profile"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Customer|Edit Profile|Sohokari v1.0.0"
+    optional: true
+- takeScreenshot: generated/screenshots/03_09_profile_tab

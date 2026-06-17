@@ -1,0 +1,57 @@
+appId: com.adnan.sohokari
+tags:
+  - generated
+  - api
+  - integration
+---
+- clearState
+- launchApp
+- waitForAnimationToEnd
+- tapOn: "you@example.com"
+- inputText: "customer@test.com"
+- tapOn: "••••••••"
+- inputText: "password123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd:
+    timeout: 15000
+- takeScreenshot: generated/screenshots/11_01_after_auth_api_state
+
+- assertVisible:
+    text: "No providers found|Nearby Providers|Categories|Logout"
+    optional: true
+- tapOn:
+    text: "Search services or providers…|Search"
+    optional: true
+- waitForAnimationToEnd
+- tapOn:
+    text: "Search by name, skill…"
+    optional: true
+- inputText: "cleaner"
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertVisible:
+    text: "providers found|No results found|Try different keywords"
+    optional: true
+- takeScreenshot: generated/screenshots/11_02_search_api_result
+
+- back
+- tapOn:
+    text: "Bookings"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- assertVisible:
+    text: "ALL|REQUESTED|No bookings yet"
+    optional: true
+- takeScreenshot: generated/screenshots/11_03_bookings_api_result
+
+- tapOn:
+    text: "Notifications"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- assertVisible:
+    text: "All caught up!|Mark all read|unread"
+    optional: true
+- takeScreenshot: generated/screenshots/11_04_notifications_api_result

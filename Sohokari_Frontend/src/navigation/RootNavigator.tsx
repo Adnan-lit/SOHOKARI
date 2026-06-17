@@ -146,11 +146,6 @@ export default function RootNavigator() {
           options={{ title: "Identity Verification" }}
         />
         <Stack.Screen
-          name="AdminDashboard"
-          component={AdminDashboardScreen}
-          options={{ title: "Admin Dashboard" }}
-        />
-        <Stack.Screen
           name="LocationPicker"
           component={LocationPickerScreen}
           options={{ title: "Pick Location", presentation: "modal" }}

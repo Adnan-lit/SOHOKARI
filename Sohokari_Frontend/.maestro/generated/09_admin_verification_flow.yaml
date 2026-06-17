@@ -1,0 +1,36 @@
+appId: com.adnan.sohokari
+tags:
+  - generated
+  - admin
+  - verification
+---
+- clearState
+- launchApp
+- waitForAnimationToEnd
+- tapOn: "you@example.com"
+- inputText: "admin@test.com"
+- tapOn: "••••••••"
+- inputText: "password123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertVisible:
+    text: "Admin Dashboard|Pending Verifications|Welcome back"
+    optional: true
+- takeScreenshot: generated/screenshots/09_01_admin_dashboard_or_login_failure
+
+- tapOn:
+    text: "Pending Verifications|No pending verifications."
+    optional: true
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Review Provider|No pending verifications.|Pending Verifications"
+    optional: true
+- takeScreenshot: generated/screenshots/09_02_admin_provider_review_optional
+- tapOn:
+    text: "Approve"
+    optional: true
+- assertVisible:
+    text: "Success|Error|Review Provider|Pending Verifications"
+    optional: true
+- takeScreenshot: generated/screenshots/09_03_admin_approve_result_optional

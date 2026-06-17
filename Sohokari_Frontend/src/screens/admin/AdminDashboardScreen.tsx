@@ -4,8 +4,10 @@ import { adminApi } from '@api/admin';
 import type { ProviderProfileResponse } from '@api/providers';
 import { Colors } from '@theme/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuthStore } from '@store/authStore';
 
 export default function AdminDashboardScreen() {
+  const { logout } = useAuthStore();
   const [providers, setProviders] = useState<ProviderProfileResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProvider, setSelectedProvider] = useState<ProviderProfileResponse | null>(null);
@@ -55,7 +57,12 @@ export default function AdminDashboardScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Pending Verifications</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.header}>Pending Verifications</Text>
+        <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
+          <Ionicons name="log-out-outline" size={24} color={Colors.error} />
+        </TouchableOpacity>
+      </View>
       
       {loading ? (
         <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: 50 }} />
@@ -113,7 +120,9 @@ export default function AdminDashboardScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background, padding: 16 },
-  header: { fontSize: 20, fontWeight: '700', color: Colors.text, marginBottom: 16 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  header: { fontSize: 20, fontWeight: '700', color: Colors.text },
+  logoutBtn: { padding: 8, backgroundColor: Colors.surface, borderRadius: 8, elevation: 1 },
   emptyText: { textAlign: 'center', color: Colors.textMuted, marginTop: 40 },
   card: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, padding: 16, borderRadius: 12, marginBottom: 12, elevation: 2 },
   avatar: { width: 50, height: 50, borderRadius: 25, marginRight: 16 },

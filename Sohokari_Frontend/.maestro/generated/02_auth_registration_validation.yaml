@@ -1,0 +1,76 @@
+appId: com.adnan.sohokari
+tags:
+  - generated
+  - auth
+  - registration
+  - validation
+---
+- clearState
+- launchApp
+- waitForAnimationToEnd
+
+- tapOn: "Register as Customer"
+- waitForAnimationToEnd
+- assertVisible: "Create account"
+- assertVisible: "Sign up as a customer"
+- takeScreenshot: generated/screenshots/02_01_customer_register
+
+- tapOn: "Create Account"
+- assertVisible: "Full name is required"
+- assertVisible: "Email is required"
+- assertVisible: "Phone number is required"
+- assertVisible: "Password is required"
+- takeScreenshot: generated/screenshots/02_02_customer_empty_validation
+
+- tapOn: "Rahim Uddin"
+- inputText: "QA Customer"
+- tapOn: "you@example.com"
+- inputText: "qa-invalid-email"
+- tapOn: "01712345678"
+- inputText: "012345"
+- tapOn:
+    text: "••••••••"
+    index: 0
+- inputText: "123"
+- tapOn:
+    text: "••••••••"
+    index: 1
+- inputText: "456"
+- tapOn: "Create Account"
+- assertVisible: "Enter a valid email"
+- assertVisible: "Enter valid BD number"
+- assertVisible: "Minimum 8 characters"
+- assertVisible: "Passwords do not match"
+- takeScreenshot: generated/screenshots/02_03_customer_field_validation
+
+- tapOn: "Register as Provider"
+- waitForAnimationToEnd
+- assertVisible: "Join as Provider"
+- assertVisible: "Personal Info"
+- takeScreenshot: generated/screenshots/02_04_provider_register
+
+- scrollUntilVisible:
+    element: "Create Provider Account"
+    direction: DOWN
+- tapOn: "Create Provider Account"
+- assertVisible:
+    text: "Full name is required"
+    optional: true
+- assertVisible:
+    text: "NID is required"
+    optional: true
+- assertVisible:
+    text: "Trade license is required"
+    optional: true
+- assertVisible:
+    text: "Select a service category"
+    optional: true
+- takeScreenshot: generated/screenshots/02_05_provider_empty_validation
+
+- scrollUntilVisible:
+    element: "Sign In"
+    direction: DOWN
+- tapOn: "Sign In"
+- waitForAnimationToEnd
+- assertVisible: "Welcome back"
+- takeScreenshot: generated/screenshots/02_06_back_to_login

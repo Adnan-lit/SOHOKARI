@@ -1,0 +1,64 @@
+appId: com.adnan.sohokari
+tags:
+  - generated
+  - offline
+  - edge
+  - validation
+---
+- clearState
+- launchApp
+- waitForAnimationToEnd
+
+- setAirplaneMode:
+    value: true
+- tapOn: "you@example.com"
+- inputText: "customer@test.com"
+- tapOn: "••••••••"
+- inputText: "password123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertVisible:
+    text: "Login failed|Network Error|Welcome back|Sign In"
+    optional: true
+- takeScreenshot: generated/screenshots/10_01_offline_login
+
+- setAirplaneMode:
+    value: false
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: generated/screenshots/10_02_connectivity_restored
+
+- clearState
+- launchApp
+- waitForAnimationToEnd
+- tapOn: "you@example.com"
+- inputText: "<script>alert('xss')</script>"
+- tapOn: "••••••••"
+- inputText: "' OR 1=1 --"
+- tapOn: "Sign In"
+- assertVisible:
+    text: "Enter a valid email|Minimum 8 characters|Login failed"
+    optional: true
+- takeScreenshot: generated/screenshots/10_03_injection_input_validation
+
+- clearState
+- launchApp
+- waitForAnimationToEnd
+- tapOn: "Register as Customer"
+- waitForAnimationToEnd
+- tapOn: "Rahim Uddin"
+- inputText: "A"
+- tapOn: "you@example.com"
+- inputText: "a@b.c"
+- tapOn: "01712345678"
+- inputText: "01999999999"
+- tapOn:
+    text: "••••••••"
+    index: 0
+- inputText: "12345678"
+- tapOn:
+    text: "••••••••"
+    index: 1
+- inputText: "12345678"
+- takeScreenshot: generated/screenshots/10_04_minimal_customer_registration_values

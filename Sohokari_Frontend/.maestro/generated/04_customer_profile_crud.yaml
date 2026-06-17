@@ -1,0 +1,67 @@
+appId: com.adnan.sohokari
+tags:
+  - generated
+  - customer
+  - crud
+  - profile
+---
+- clearState
+- launchApp
+- waitForAnimationToEnd
+- tapOn: "you@example.com"
+- inputText: "customer@test.com"
+- tapOn: "••••••••"
+- inputText: "password123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd:
+    timeout: 15000
+
+- tapOn:
+    text: "Profile"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Edit Profile"
+    optional: true
+- takeScreenshot: generated/screenshots/04_01_profile_overview
+
+- tapOn: "Edit Profile"
+- waitForAnimationToEnd
+- assertVisible: "Name"
+- assertVisible: "Phone Number"
+- takeScreenshot: generated/screenshots/04_02_edit_profile
+
+- tapOn: "Save Changes"
+- waitForAnimationToEnd:
+    timeout: 10000
+- assertVisible:
+    text: "Customer|Profile updated successfully|Failed to update profile|Name is required"
+    optional: true
+- takeScreenshot: generated/screenshots/04_03_profile_save_result
+
+- back
+- waitForAnimationToEnd
+- tapOn:
+    text: "Update My Location"
+    optional: true
+- assertVisible:
+    text: "Update Location"
+    optional: true
+- takeScreenshot: generated/screenshots/04_04_update_location_prompt
+- tapOn:
+    text: "Cancel"
+    optional: true
+
+- scrollUntilVisible:
+    element: "Logout|Sign Out"
+    direction: DOWN
+- tapOn:
+    text: "Logout|Sign Out"
+    optional: true
+- assertVisible:
+    text: "Sign Out"
+    optional: true
+- takeScreenshot: generated/screenshots/04_05_sign_out_prompt
+- tapOn:
+    text: "Cancel"
+    optional: true

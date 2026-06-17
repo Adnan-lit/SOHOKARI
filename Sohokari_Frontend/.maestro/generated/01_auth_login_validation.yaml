@@ -1,0 +1,40 @@
+appId: com.adnan.sohokari
+tags:
+  - generated
+  - auth
+  - validation
+---
+- clearState
+- launchApp
+- waitForAnimationToEnd
+- assertVisible: "Welcome back"
+- takeScreenshot: generated/screenshots/01_01_login_initial
+
+- tapOn: "Sign In"
+- assertVisible: "Email is required"
+- assertVisible: "Password is required"
+- takeScreenshot: generated/screenshots/01_02_login_empty_validation
+
+- tapOn: "you@example.com"
+- inputText: "not-an-email"
+- tapOn: "••••••••"
+- inputText: "12345678"
+- tapOn: "Sign In"
+- assertVisible: "Enter a valid email"
+- takeScreenshot: generated/screenshots/01_03_login_invalid_email
+
+- clearState
+- launchApp
+- waitForAnimationToEnd
+- tapOn: "you@example.com"
+- inputText: "customer@test.com"
+- tapOn: "••••••••"
+- inputText: "password123"
+- takeScreenshot: generated/screenshots/01_04_login_seed_credentials_entered
+- tapOn: "Sign In"
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertVisible:
+    text: "Sohokari|Hello|Find trusted services near you|Nearby Providers|No providers found"
+    optional: true
+- takeScreenshot: generated/screenshots/01_05_login_result

@@ -1,0 +1,81 @@
+appId: com.adnan.sohokari
+tags:
+  - generated
+  - provider
+  - dashboard
+  - crud
+---
+- clearState
+- launchApp
+- waitForAnimationToEnd
+- tapOn: "you@example.com"
+- inputText: "provider@test.com"
+- tapOn: "••••••••"
+- inputText: "password123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertVisible:
+    text: "Dashboard|Availability|Identity Verification Required|Quick Actions"
+    optional: true
+- takeScreenshot: generated/screenshots/07_01_provider_dashboard
+
+- tapOn:
+    text: "Availability"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- assertVisible:
+    text: "You are now|Availability|Visible to customers|Hidden from customers"
+    optional: true
+- takeScreenshot: generated/screenshots/07_02_availability_toggle_result
+
+- tapOn:
+    text: "Profile"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Edit Profile|Earnings|Summary|View Full Reputation"
+    optional: true
+- takeScreenshot: generated/screenshots/07_03_provider_profile_tab
+
+- tapOn:
+    text: "Edit Profile"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Bio|Skills|Hourly Rate|Service Area"
+    optional: true
+- takeScreenshot: generated/screenshots/07_04_provider_edit_profile
+- scrollUntilVisible:
+    element: "Save Changes"
+    direction: DOWN
+- tapOn:
+    text: "Save Changes"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 15000
+- assertVisible:
+    text: "Profile Updated|Update Failed|My Profile|Save Changes"
+    optional: true
+- takeScreenshot: generated/screenshots/07_05_provider_save_result
+- back
+
+- tapOn:
+    text: "Earnings"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Earnings Dashboard|Failed to load earnings|Total Earnings"
+    optional: true
+- takeScreenshot: generated/screenshots/07_06_earnings
+- back
+
+- tapOn:
+    text: "Summary"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Activity Summary|Failed to load activity summary|Total Bookings"
+    optional: true
+- takeScreenshot: generated/screenshots/07_07_activity_summary

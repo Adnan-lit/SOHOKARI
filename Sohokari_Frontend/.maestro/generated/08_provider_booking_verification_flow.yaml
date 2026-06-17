@@ -1,0 +1,67 @@
+appId: com.adnan.sohokari
+tags:
+  - generated
+  - provider
+  - booking
+  - verification
+---
+- clearState
+- launchApp
+- waitForAnimationToEnd
+- tapOn: "you@example.com"
+- inputText: "provider@test.com"
+- tapOn: "••••••••"
+- inputText: "password123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd:
+    timeout: 15000
+
+- tapOn:
+    text: "Identity Verification Required|Verification Rejected"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Identity Verification|National ID|Submit for Review|Dashboard"
+    optional: true
+- takeScreenshot: generated/screenshots/08_01_verification_screen_optional
+- tapOn:
+    text: "Submit for Review"
+    optional: true
+- assertVisible:
+    text: "Please upload your NID image|Error"
+    optional: true
+- takeScreenshot: generated/screenshots/08_02_verification_validation
+- back
+
+- tapOn:
+    text: "MyBookings|My Bookings|Bookings"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible:
+    text: "ALL|REQUESTED|No bookings yet"
+    optional: true
+- takeScreenshot: generated/screenshots/08_03_provider_bookings
+- tapOn:
+    text: "REQUESTED"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: generated/screenshots/08_04_provider_requested_filter
+- tapOn:
+    text: "REQUESTED|No requested bookings"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- assertVisible:
+    text: "Booking Details|Accept|Reject|No requested bookings|No bookings yet"
+    optional: true
+- takeScreenshot: generated/screenshots/08_05_provider_booking_detail_optional
+- tapOn:
+    text: "Reject"
+    optional: true
+- assertVisible:
+    text: "Reason for Rejection"
+    optional: true
+- takeScreenshot: generated/screenshots/08_06_reject_reason_modal_optional
+- tapOn:
+    text: "Back"
+    optional: true

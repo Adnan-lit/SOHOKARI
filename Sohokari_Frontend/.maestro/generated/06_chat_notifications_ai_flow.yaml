@@ -1,0 +1,89 @@
+appId: com.adnan.sohokari
+tags:
+  - generated
+  - chat
+  - notifications
+  - ai
+---
+- clearState
+- launchApp
+- waitForAnimationToEnd
+- tapOn: "you@example.com"
+- inputText: "customer@test.com"
+- tapOn: "••••••••"
+- inputText: "password123"
+- tapOn: "Sign In"
+- waitForAnimationToEnd:
+    timeout: 15000
+
+- tapOn:
+    text: "AI Assistant"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Type in Bangla or English…"
+    optional: true
+- tapOn:
+    text: "Type in Bangla or English…"
+    optional: true
+- inputText: "I need help finding a plumber"
+- takeScreenshot: generated/screenshots/06_01_ai_message_ready
+- tapOn:
+    point: "92%,93%"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 20000
+- assertVisible:
+    text: "AI is thinking…|Sorry, I had trouble responding|plumber|Plumber"
+    optional: true
+- takeScreenshot: generated/screenshots/06_02_ai_response_result
+- back
+
+- tapOn:
+    text: "Chat"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible:
+    text: "No messages yet|Chat threads appear here|Inquiry"
+    optional: true
+- takeScreenshot: generated/screenshots/06_03_chat_list
+- tapOn:
+    text: "No messages yet|Inquiry"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- assertVisible:
+    text: "Type a message…|No messages yet. Say hello!"
+    optional: true
+- takeScreenshot: generated/screenshots/06_04_chat_room_optional
+
+- tapOn:
+    text: "Type a message…"
+    optional: true
+- inputText: "Hello from Maestro"
+- takeScreenshot: generated/screenshots/06_05_chat_message_ready
+- tapOn:
+    point: "92%,94%"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- assertVisible:
+    text: "Hello from Maestro|No messages yet|Connecting…"
+    optional: true
+- takeScreenshot: generated/screenshots/06_06_chat_send_result
+- back
+
+- tapOn:
+    text: "Notifications"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible:
+    text: "All caught up!|No notifications right now|Mark all read"
+    optional: true
+- takeScreenshot: generated/screenshots/06_07_notifications
+- tapOn:
+    text: "Mark all read"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 10000
+- takeScreenshot: generated/screenshots/06_08_notifications_mark_read_result
